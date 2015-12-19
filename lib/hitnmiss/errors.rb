@@ -1,7 +1,7 @@
 module Hitnmiss
-	module Errors
-		class Error < StandardError; end
+  module Errors
+    class Error < StandardError; end
 
-		class NotImplemented < Error; end
-	end
+    class NotImplemented < Error; end
+  end
 end
