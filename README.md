@@ -24,6 +24,19 @@ Or install it yourself as:
 
 TODO: Write usage instructions here
 
+## ToDo
+
+- Write an interface class with pure virtual methods that defines the
+  interface that a driver must conform to. Also, make sure the
+  InMemoryDriver uses it.
+- Add a test to the ".fetch" that makes sure it first calls
+  `generate_key` and then "attempts to obtain the cached value".
+- Write a useful README.md that will help people understand how to use
+  this library.
+- Write a separate hitnmiss-redis_driver gem to implement the hitnmiss
+  driver interface for Redis. Note: The README.md for both projects
+  should reference one another.
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
