@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Andrew De Ponte"]
   spec.email         = ["cyphactor@gmail.com"]
 
-  spec.summary       = %q{Ruby read-through, write-behind cacheing using POROs}
-  spec.description   = %q{Ruby gem to support using the Repository pattern for read-through, write-behind cacheing using POROs}
+  spec.summary       = %q{Ruby read-through, write-behind caching using POROs}
+  spec.description   = %q{Ruby gem to support using the Repository pattern for read-through, write-behind caching using POROs}
   spec.homepage      = "TODO: Put your gem's website or public repo URL here."
   spec.license       = "MIT"
 
@@ -30,5 +30,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 1.11"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
-	spec.add_development_dependency "timecop", "~> 0.8"
+  spec.add_development_dependency "timecop", "~> 0.8"
 end
