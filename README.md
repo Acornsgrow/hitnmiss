@@ -164,8 +164,6 @@ MostRecentPrice.fetch(current_user.id)
 
 ## ToDo
 
-- Add a test to the ".fetch" that makes sure it first calls
-  `generate_key` and then "attempts to obtain the cached value".
 - Write a separate hitnmiss-redis_driver gem to implement the hitnmiss
   driver interface for Redis. Note: The README.md for both projects
   should reference one another.
