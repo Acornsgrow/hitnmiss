@@ -6,3 +6,5 @@ engines:
     enabled: true
 ratings:
   paths:
+  - "lib/**/*"
+  - "**.rb"
