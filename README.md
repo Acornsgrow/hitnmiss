@@ -26,9 +26,6 @@ TODO: Write usage instructions here
 
 ## ToDo
 
-- Write an interface class with pure virtual methods that defines the
-  interface that a driver must conform to. Also, make sure the
-  InMemoryDriver uses it.
 - Add a test to the ".fetch" that makes sure it first calls
   `generate_key` and then "attempts to obtain the cached value".
 - Write a useful README.md that will help people understand how to use

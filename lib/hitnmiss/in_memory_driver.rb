@@ -1,5 +1,5 @@
 module Hitnmiss
-  class InMemoryDriver
+  class InMemoryDriver < Hitnmiss::Driver
     def initialize
       @cache = {}
     end
