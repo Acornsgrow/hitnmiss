@@ -30,7 +30,7 @@ describe Hitnmiss::DriverRegistry do
 
     context "when the driver is not registered in the registry" do
       it "raises an UnregisterdDriver exception" do
-        expect { subject.get("name") }.to raise_error(Hitnmiss::UnregisterdDriver)
+        expect { subject.get("name") }.to raise_error(Hitnmiss::Errors::UnregisterdDriver)
       end
     end
   end

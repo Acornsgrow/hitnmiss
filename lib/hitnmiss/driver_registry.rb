@@ -10,10 +10,8 @@ module Hitnmiss
 
     def get(name)
       @registry.fetch(name) do |name|
-        raise UnregisterdDriver.new("#{name} is not a registered driver")
+        raise Errors::UnregisterdDriver.new("#{name} is not a registered driver")
       end
     end
   end
-
-  class UnregisterdDriver < StandardError; end
 end
