@@ -129,6 +129,19 @@ describe Hitnmiss::Repository do
   end
 
   describe ".fetch" do
+    it "generates the cache key" do
+      repo_klass = Class.new do
+        include Hitnmiss::Repository
+        driver Hitnmiss::InMemoryDriver.new
+      end
+
+      driver = double('cache driver', get: double('value'))
+      expect(repo_klass).to receive(:generate_key).with('auaeuaoeua')
+      repo_klass.instance_variable_set(:@driver, driver)
+
+      repo_klass.fetch('auaeuaoeua')
+    end
+
     it "attempts to obtained the cached value" do
       repo_klass = Class.new do
         include Hitnmiss::Repository
