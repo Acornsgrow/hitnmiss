@@ -162,12 +162,6 @@ cached value by doing something like the following.
 MostRecentPrice.fetch(current_user.id)
 ```
 
-## ToDo
-
-- Write a separate hitnmiss-redis_driver gem to implement the hitnmiss
-  driver interface for Redis. Note: The README.md for both projects
-  should reference one another.
-
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies.
