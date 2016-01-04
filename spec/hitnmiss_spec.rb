@@ -7,10 +7,11 @@ describe Hitnmiss do
 
   describe "setting the cache driver" do
     it "specifies the cache driver to use" do
+      Hitnmiss.register_driver(:my_driver, Hitnmiss::InMemoryDriver.new)
       cache_repo_klass = Class.new do
         include Hitnmiss::Repository
 
-        driver :in_memory
+        driver :my_driver
       end
     end
   end

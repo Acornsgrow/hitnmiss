@@ -6,6 +6,8 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+* Added driver registry to centrally manage instantiated drivers
+
 #### v0.1.0
 
 * Add initial Minimum Viable Product version of the library
