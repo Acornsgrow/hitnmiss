@@ -7,10 +7,11 @@ describe Hitnmiss do
 
   describe "setting the cache driver" do
     it "specifies the cache driver to use" do
+      Hitnmiss.register_driver(:my_driver, Hitnmiss::InMemoryDriver.new)
       cache_repo_klass = Class.new do
         include Hitnmiss::Repository
 
-        driver Hitnmiss::InMemoryDriver.new
+        driver :my_driver
       end
     end
   end
@@ -30,8 +31,6 @@ describe Hitnmiss do
       cache_repo_klass = Class.new do
         include Hitnmiss::Repository
 
-        driver Hitnmiss::InMemoryDriver.new
-
         def self.perform(*args)
           Hitnmiss::Entity.new('foo', 235)
         end
@@ -46,8 +45,6 @@ describe Hitnmiss do
       cache_repo_klass = Class.new do
         include Hitnmiss::Repository
 
-        driver Hitnmiss::InMemoryDriver.new
-
         def self.perform(*args)
           Hitnmiss::Entity.new('foo', 235)
         end
@@ -58,7 +55,7 @@ describe Hitnmiss do
       Timecop.freeze(cur_time) do
         cache_repo_klass.prime_cache('some_token')
 
-        driver = cache_repo_klass.instance_variable_get(:@driver)
+        driver = Hitnmiss.driver(:in_memory)
         cache = driver.instance_variable_get(:@cache)
         expect(cache['.String:some_token']['expiration']).to eq(cur_time.to_i + 235)
       end
@@ -69,8 +66,6 @@ describe Hitnmiss do
     it "primes the cache, and returns the cached value" do
       cache_repo_klass = Class.new do
         include Hitnmiss::Repository
-
-        driver Hitnmiss::InMemoryDriver.new
 
         def self.perform(*args)
           Hitnmiss::Entity.new('foo', 235)
@@ -85,8 +80,6 @@ describe Hitnmiss do
     it "returns the cached value" do
       cache_repo_klass = Class.new do
         include Hitnmiss::Repository
-
-        driver Hitnmiss::InMemoryDriver.new
 
         def self.perform(*args)
           Hitnmiss::Entity.new('foo', 235)

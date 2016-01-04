@@ -55,18 +55,26 @@ persistance layer and the business representation.
 
 ###  Set a Repositories Cache Driver
 
-Once you have a defined a `class` and mixed in the
-`Hitnmiss::Repository` module. You need to tell `Hitnmiss` what driver
-to use for this particular repository. The following is an example of
-how one would accomplish setting the driver to the provided
-`Hitnmiss::InMemoryDriver`.
+Hitnmiss defaults to the `InMemoryDriver`, but if an alternate driver is
+needed, or if a separate `InMemoryDriver` is required a new driver can be
+registered
+
+```ruby
+# config/hitnmiss.rb
+Hitnmiss.register_driver(:my_driver, Hitnmiss::InMemoryDriver.new)
+```
+
+Once you have registered a new driver you need to tell `Hitnmiss` what 
+driver to use for this particular repository. The following is an example
+of how one would accomplish setting the repository driver to the driver we
+just registered.
 
 ```ruby
 # lib/cache_repositories/most_recent_price.rb
 class MostRecentPrice
   include Hitnmiss::Repository
 
-  driver Hitnmiss::InMemoryDriver.new
+  driver :my_driver
 end
 ```
 
@@ -82,7 +90,6 @@ entire repository. The following is an example of how one would do this.
 class MostRecentPrice
   include Hitnmiss::Repository
 
-  driver Hitnmiss::InMemoryDriver.new
   default_expiration 134
 end
 ```
@@ -102,7 +109,6 @@ methods are called.
 class MostRecentPrice
   include Hitnmiss::Repository
 
-  driver Hitnmiss::InMemoryDriver.new
   default_expiration 134
 
   def self.perform(*args)
@@ -128,7 +134,6 @@ over the `default_expiration`.
 class MostRecentPrice
   include Hitnmiss::Repository
 
-  driver Hitnmiss::InMemoryDriver.new
   default_expiration 134
 
   def self.perform(*args)

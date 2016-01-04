@@ -2,15 +2,14 @@ require 'spec_helper'
 
 describe Hitnmiss::Repository do
   describe ".driver" do
-    it "registers a driver instance" do
-      some_driver = double('some driver')
+    it "registers a driver name" do
       repo_klass = Class.new do
         include Hitnmiss::Repository
-        driver some_driver
+        driver :some_driver
       end
 
-      actual_driver = repo_klass.instance_variable_get(:@driver) 
-      expect(actual_driver).to eq(some_driver)
+      driver_name = repo_klass.instance_variable_get(:@driver_name) 
+      expect(driver_name).to eq(:some_driver)
     end
   end
 
@@ -55,10 +54,11 @@ describe Hitnmiss::Repository do
     it "obtains the cacheable entity" do
       repo_klass = Class.new do
         include Hitnmiss::Repository
+        self.driver :my_driver
       end
 
       args = double('arguments')
-      repo_klass.instance_variable_set(:@driver, double.as_null_object)
+      Hitnmiss.register_driver(:my_driver, double.as_null_object)
       expect(repo_klass).to receive(:perform).with(args).and_return(double.as_null_object)
       
       repo_klass.prime_cache(args)
@@ -72,15 +72,16 @@ describe Hitnmiss::Repository do
 
         repo_klass = Class.new do
           include Hitnmiss::Repository
+          self.driver :my_driver
 
           def self.perform(*args)
             Hitnmiss::Entity.new('myval', 22223)
           end
         end
+        Hitnmiss.register_driver(:my_driver, driver)
 
         allow(repo_klass).to receive(:generate_key).and_return(key)
 
-        repo_klass.instance_variable_set(:@driver, driver)
         expect(driver).to receive(:set).with(key, 'myval', 22223)
         
         repo_klass.prime_cache(args)
@@ -96,16 +97,17 @@ describe Hitnmiss::Repository do
 
         repo_klass = Class.new do
           include Hitnmiss::Repository
+          self.driver :my_driver
 
           def self.perform(*args)
             Hitnmiss::Entity.new('myval')
           end
         end
+        Hitnmiss.register_driver(:my_driver, driver)
 
         allow(repo_klass).to receive(:generate_key).and_return(key)
 
         repo_klass.instance_variable_set(:@default_expiration, default_expiration)
-        repo_klass.instance_variable_set(:@driver, driver)
 
         expect(driver).to receive(:set).with(key, 'myval', default_expiration)
         
@@ -116,7 +118,6 @@ describe Hitnmiss::Repository do
     it "return the cacheable entity value" do
       repo_klass = Class.new do
         include Hitnmiss::Repository
-        driver Hitnmiss::InMemoryDriver.new
       end
 
       entity = double(value: 'foovalue', expiration: 212).as_null_object
@@ -132,12 +133,12 @@ describe Hitnmiss::Repository do
     it "generates the cache key" do
       repo_klass = Class.new do
         include Hitnmiss::Repository
-        driver Hitnmiss::InMemoryDriver.new
+        self.driver :my_driver
       end
 
       driver = double('cache driver', get: double('value'))
       expect(repo_klass).to receive(:generate_key).with('auaeuaoeua')
-      repo_klass.instance_variable_set(:@driver, driver)
+      Hitnmiss.register_driver(:my_driver, driver)
 
       repo_klass.fetch('auaeuaoeua')
     end
@@ -145,13 +146,13 @@ describe Hitnmiss::Repository do
     it "attempts to obtained the cached value" do
       repo_klass = Class.new do
         include Hitnmiss::Repository
-        driver Hitnmiss::InMemoryDriver.new
+        driver :my_driver
       end
 
       driver = double('cache driver')
+      Hitnmiss.register_driver(:my_driver, driver)
       key = double('key')
       allow(repo_klass).to receive(:generate_key).and_return(key)
-      repo_klass.instance_variable_set(:@driver, driver)
       allow(repo_klass).to receive(:prime_cache)
 
       expect(driver).to receive(:get).with(key)
@@ -163,14 +164,14 @@ describe Hitnmiss::Repository do
       it "returns the already cached value" do
         repo_klass = Class.new do
           include Hitnmiss::Repository
-          driver Hitnmiss::InMemoryDriver.new
+          driver :my_driver
         end
 
         driver = double('cache driver')
         key = double('key')
         value = double('cached value')
         allow(repo_klass).to receive(:generate_key).and_return(key)
-        repo_klass.instance_variable_set(:@driver, driver)
+        Hitnmiss.register_driver(:my_driver, driver)
 
         expect(driver).to receive(:get).with(key).and_return(value)
 
@@ -182,13 +183,13 @@ describe Hitnmiss::Repository do
       it "primes the cache" do
         repo_klass = Class.new do
           include Hitnmiss::Repository
-          driver Hitnmiss::InMemoryDriver.new
+          driver :my_driver
         end
 
         driver = double('cache driver')
         key = double('key')
         allow(repo_klass).to receive(:generate_key).and_return(key)
-        repo_klass.instance_variable_set(:@driver, driver)
+        Hitnmiss.register_driver(:my_driver, driver)
         allow(driver).to receive(:get).with(key).and_return(nil)
         expect(repo_klass).to receive(:prime_cache).with('aoeuaoeuao')
 
@@ -198,13 +199,13 @@ describe Hitnmiss::Repository do
       it "returns the newly cached value" do
         repo_klass = Class.new do
           include Hitnmiss::Repository
-          driver Hitnmiss::InMemoryDriver.new
+          driver :my_driver
         end
 
         driver = double('cache driver')
         key = double('key')
         allow(repo_klass).to receive(:generate_key).and_return(key)
-        repo_klass.instance_variable_set(:@driver, driver)
+        Hitnmiss.register_driver(:my_driver, driver)
         allow(driver).to receive(:get).with(key).and_return(nil)
         allow(repo_klass).to receive(:prime_cache).and_return('porkpork')
 
