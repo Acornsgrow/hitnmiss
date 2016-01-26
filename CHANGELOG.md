@@ -6,6 +6,8 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+* Make the in memory driver threadsafe
+
 #### v0.1.0
 
 * Added driver registry to centrally manage instantiated drivers
