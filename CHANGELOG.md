@@ -6,6 +6,8 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+#### v0.1.1
+
 * Make the in memory driver threadsafe
 
 #### v0.1.0
