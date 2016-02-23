@@ -38,10 +38,11 @@ module Hitnmiss
       end
 
       def fetch(*args)
-        if value = Hitnmiss.driver(@driver_name).get(generate_key(*args))
-          return value
-        else
+        value = Hitnmiss.driver(@driver_name).get(generate_key(*args))
+        if value.nil?
           return prime_cache(*args)
+        else
+          return value
         end
       end
     end
