@@ -7,5 +7,17 @@ module Hitnmiss
     def get(key)
       raise Hitnmiss::Errors::NotImplemented
     end
+
+    def all(keyspace)
+      raise Hitnmiss::Errors::NotImplemented
+    end
+
+    def delete(key)
+      raise Hitnmiss::Errors::NotImplemented
+    end
+
+    def clear(keyspace)
+      raise Hitnmiss::Errors::NotImplemented
+    end
   end
 end

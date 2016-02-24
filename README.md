@@ -51,7 +51,7 @@ in a number of ways. First, it centralizes cache key generation.
 Secondly, it centralizes/standardizes access to the cache rather than
 having code spread across your app duplicating key generation and
 access. Third, it provides clean separation between the cache
-persistance layer and the business representation.
+persistence layer and the business representation.
 
 ###  Set a Repositories Cache Driver
 
@@ -64,7 +64,7 @@ registered
 Hitnmiss.register_driver(:my_driver, Hitnmiss::InMemoryDriver.new)
 ```
 
-Once you have registered a new driver you need to tell `Hitnmiss` what 
+Once you have registered a new driver you need to tell `Hitnmiss` what
 driver to use for this particular repository. The following is an example
 of how one would accomplish setting the repository driver to the driver we
 just registered.
@@ -97,12 +97,14 @@ end
 ### Define Cache Source
 
 You may be asking yourself, "How does the cache value get set?" Well,
-the answer is by defining the the `self.perform(*args)` method. This
-method is responsible for obtaining the value that you want to cache by
-whatever means necessary and returning a `Hitnmiss::Entity` containing
-the value. *Note:* The `*args` passed into `self.perform` are whatever
-the args are that are passed into `prime_cache` and `fetch` when those
-methods are called.
+the answer is one of two ways.
+
+* Fetching an individual cacheable entity
+* Fetching all of the repository's cacheable entities
+
+Both of these scenarios are supported by defining the `self.get(*args)` method
+and the `self.get_all(keyspace)` method respectively.  See the following
+example.
 
 ```ruby
 # lib/cache_repositories/most_recent_price.rb
@@ -111,19 +113,40 @@ class MostRecentPrice
 
   default_expiration 134
 
-  def self.perform(*args)
+  def self.get(*args)
     # - do whatever to get the value you want to cache
     # - construct a Hitnmiss::Entity with the value
     Hitnmiss::Entity.new('some value')
   end
+
+  def self.get_all(keyspace)
+    # - do whatever to get the values you want to cache
+    # - construct a collection of arguments and Hitnmiss entities
+    [
+      { args: ['a', 'b'], entity: Hitnmiss::Entity.new('some value') },
+      { args: ['x', 'y'], entity: Hitnmiss::Entity.new('other value') }
+    ]
+  end
 end
 ```
+
+The `self.get(*args)` method is responsible for obtaining the
+value that you want to cache by whatever means necessary and returning a
+`Hitnmiss::Entity` containing the value. *Note:* The `*args` passed into
+`self.get` are whatever the args are that are passed into
+`prime` and `fetch` when those methods are called.
+
+If you wish to support the repository-level methods `.all`, `.clear`, and
+`.prime_all`, you *must* define the `self.get_all` method on
+the repository.  This method must return a collection of hashes describing the
+`args` that would be used to fetch an entity and the corresponding
+`Hitnmiss::Entity`.  See example above.
 
 ### Set Cache Source based Expiration
 
 In some cases you might need to set the expiration to be a different
 value for each value. This is generally when you get back information in
-the `self.perform` method that you use to compute the expiration. Once
+the `self.get` method that you use to compute the expiration. Once
 you have the expiration for that value you can set it by passing the
 expiration into the `Hitnmiss::Entity` constructor as seen below.
 *Note:* The expiration in the `Hitnmiss::Entity` will take precedence
@@ -136,7 +159,7 @@ class MostRecentPrice
 
   default_expiration 134
 
-  def self.perform(*args)
+  def self.get(*args)
     # - do whatever to get the value you want to cache
     # - construct a Hitnmiss::Entity with the value and optionally a
     #   result based expiration. If no result based expiration is
@@ -146,25 +169,51 @@ class MostRecentPrice
 end
 ```
 
-### Priming Cache
+### Priming an entity
 
-Once you have defined the `self.perform` method. You can actually use
+Once you have defined the `self.get` method. You can actually use
 your cache repository. One way you might want to use it is to force the
-repository to fetch the value using `self.perform` and cache the
-resulting value. This can be done using the `prime_cache` method as seen
+repository to fetch the value using `self.get` and cache the
+resulting value. This can be done using the `prime` method as seen
 below.
 
 ```ruby
-MostRecentPrice.prime_cache(current_user.id)
+MostRecentPrice.prime(current_user.id)
 ```
 
-### Fetching a Value
+### Priming the entire repository
+
+You can use `self.prime_all` to prime the entire repository if the repository
+implements `self.get`.
+
+```ruby
+MostRecentPrice.prime_all
+```
+
+### Fetching a value
 
 You can also use your cache repository to of course fetch a particular
 cached value by doing something like the following.
 
 ```ruby
 MostRecentPrice.fetch(current_user.id)
+```
+
+### Deleting a cached value
+
+You can delete a cached value by called `.delete` with the arguments used to
+fetch it.
+
+```ruby
+MostRecentPrice.delete(current_user.id)
+```
+
+### Clearing a repository
+
+You can clear the entire repository of cached values using `.clear`.
+
+```ruby
+MostRecentPrice.clear
 ```
 
 ## Development
@@ -191,4 +240,3 @@ code of conduct.
 
 The gem is available as open source under the terms of the [MIT
 License](http://opensource.org/licenses/MIT).
-

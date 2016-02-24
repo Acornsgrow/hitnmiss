@@ -28,5 +28,32 @@ module Hitnmiss
         return nil
       end
     end
+
+    def all(keyspace)
+      @mutex.synchronize do
+        matching_values = []
+        @cache.each do |key, value|
+          matching_values << value if match_keyspace?(key, keyspace)
+        end
+        return matching_values
+      end
+    end
+
+    def delete(key)
+      @mutex.synchronize do
+        @cache.delete(key)
+      end
+    end
+
+    def clear(keyspace)
+      @mutex.synchronize do
+        @cache.delete_if { |key, _| match_keyspace?(key, keyspace) }
+      end
+    end
+
+    def match_keyspace?(key, keyspace)
+      regex = Regexp.new("^#{keyspace}\\" + Repository::KEY_COMPONENT_SEPARATOR)
+      return regex.match(key)
+    end
   end
 end

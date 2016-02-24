@@ -31,12 +31,12 @@ describe Hitnmiss do
       cache_repo_klass = Class.new do
         include Hitnmiss::Repository
 
-        def self.perform(*args)
+        def self.get(*args)
           Hitnmiss::Entity.new('foo', 235)
         end
       end
 
-      expect(cache_repo_klass.prime_cache('some_token')).to eq('foo')
+      expect(cache_repo_klass.prime('some_token')).to eq('foo')
     end
   end
 
@@ -45,7 +45,7 @@ describe Hitnmiss do
       cache_repo_klass = Class.new do
         include Hitnmiss::Repository
 
-        def self.perform(*args)
+        def self.get(*args)
           Hitnmiss::Entity.new('foo', 235)
         end
       end
@@ -53,7 +53,7 @@ describe Hitnmiss do
       cur_time = Time.now.utc
 
       Timecop.freeze(cur_time) do
-        cache_repo_klass.prime_cache('some_token')
+        cache_repo_klass.prime('some_token')
 
         driver = Hitnmiss.driver(:in_memory)
         cache = driver.instance_variable_get(:@cache)
@@ -67,7 +67,7 @@ describe Hitnmiss do
       cache_repo_klass = Class.new do
         include Hitnmiss::Repository
 
-        def self.perform(*args)
+        def self.get(*args)
           Hitnmiss::Entity.new('foo', 235)
         end
       end
@@ -81,12 +81,12 @@ describe Hitnmiss do
       cache_repo_klass = Class.new do
         include Hitnmiss::Repository
 
-        def self.perform(*args)
+        def self.get(*args)
           Hitnmiss::Entity.new('foo', 235)
         end
       end
 
-      cache_repo_klass.prime_cache
+      cache_repo_klass.prime
 
       expect(cache_repo_klass.fetch('some_token')).to eq('foo')
     end
