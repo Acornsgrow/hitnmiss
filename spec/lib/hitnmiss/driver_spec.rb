@@ -20,4 +20,25 @@ describe Hitnmiss::Driver do
       raise_error(Hitnmiss::Errors::NotImplemented)
     end
   end
+
+  describe '#all' do
+    it "raises error indicating not implemented" do
+      expect { subject.all(double('key namespace')) }.to \
+      raise_error(Hitnmiss::Errors::NotImplemented)
+    end
+  end
+
+  describe '#del' do
+    it "raises error indicating not implemented" do
+      expect { subject.del(double('key')) }.to \
+      raise_error(Hitnmiss::Errors::NotImplemented)
+    end
+  end
+
+  describe '#clear' do
+    it "raises error indicating not implemented" do
+      expect { subject.clear(double('key namespace')) }.to \
+      raise_error(Hitnmiss::Errors::NotImplemented)
+    end
+  end
 end

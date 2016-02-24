@@ -63,4 +63,53 @@ describe "Hitnmiss::InMemoryDriver" do
       end
     end
   end
+
+  describe '#all' do
+    it 'returns only the values whose keys begin with the keyspace' do
+      driver = Hitnmiss::InMemoryDriver.new
+      cache = {
+        'keyspace.some_key' => { 'value' => 'foo', 'expiration' => 23 },
+        'keyspace.some_other_key' => { 'value' => 'bar', 'expiration' => 33 },
+        'notkeyspace.some_key' => { 'value' => 'baz', 'expiration' => 43 }
+      }
+      driver.instance_variable_set(:@cache, cache)
+      expect(driver.all('keyspace')).to match_array(
+        [
+          { 'value' => 'foo', 'expiration' => 23 },
+          { 'value' => 'bar', 'expiration' => 33 }
+        ]
+      )
+    end
+  end
+
+  describe '#del' do
+    it 'deletes the cached value for the key' do
+      driver = Hitnmiss::InMemoryDriver.new
+      cache = {
+        'keyspace.some_key' => { 'value' => 'foo', 'expiration' => 23 },
+        'keyspace.some_other_key' => { 'value' => 'bar', 'expiration' => 33 }
+      }
+      driver.instance_variable_set(:@cache, cache)
+      driver.del('keyspace.some_key')
+      expect(cache.has_key?('keyspace.some_key')).to eq false
+    end
+  end
+
+  describe '#clear' do
+    it 'clears the cache' do
+      driver = Hitnmiss::InMemoryDriver.new
+      cache = {
+        'keyspace.some_key' => { 'value' => 'foo', 'expiration' => 23 },
+        'keyspace.some_other_key' => { 'value' => 'bar', 'expiration' => 33 },
+        'notkeyspace.some_key' => { 'value' => 'baz', 'expiration' => 43 }
+      }
+      driver.instance_variable_set(:@cache, cache)
+      driver.clear('keyspace')
+      expect(cache).to eq(
+        {
+          'notkeyspace.some_key' => { 'value' => 'baz', 'expiration' => 43 }
+        }
+      )
+    end
+  end
 end
