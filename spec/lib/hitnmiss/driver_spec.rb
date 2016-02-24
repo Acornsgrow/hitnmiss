@@ -30,7 +30,7 @@ describe Hitnmiss::Driver do
 
   describe '#del' do
     it "raises error indicating not implemented" do
-      expect { subject.del(double('key')) }.to \
+      expect { subject.delete(double('key')) }.to \
       raise_error(Hitnmiss::Errors::NotImplemented)
     end
   end

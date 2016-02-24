@@ -39,7 +39,7 @@ module Hitnmiss
       end
     end
 
-    def del(key)
+    def delete(key)
       @mutex.synchronize do
         @cache.delete(key)
       end

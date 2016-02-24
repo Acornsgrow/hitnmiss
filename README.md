@@ -51,7 +51,7 @@ in a number of ways. First, it centralizes cache key generation.
 Secondly, it centralizes/standardizes access to the cache rather than
 having code spread across your app duplicating key generation and
 access. Third, it provides clean separation between the cache
-persistance layer and the business representation.
+persistence layer and the business representation.
 
 ###  Set a Repositories Cache Driver
 
@@ -102,9 +102,9 @@ the answer is one of two ways.
 * Fetching an individual cacheable entity
 * Fetching all of the repository's cacheable entities
 
-Both of these scenarios are supported by defining the
-`self.fetch_cacheable_entity(*args)` method and the
-`self.fetch_cacheable_entities` method respectively.  See the following example.
+Both of these scenarios are supported by defining the `self.get(*args)` method
+and the `self.get_all(keyspace)` method respectively.  See the following
+example.
 
 ```ruby
 # lib/cache_repositories/most_recent_price.rb
@@ -113,13 +113,13 @@ class MostRecentPrice
 
   default_expiration 134
 
-  def self.fetch_cacheable_entity(*args)
+  def self.get(*args)
     # - do whatever to get the value you want to cache
     # - construct a Hitnmiss::Entity with the value
     Hitnmiss::Entity.new('some value')
   end
 
-  def self.fetch_cacheable_entities(keyspace)
+  def self.get_all(keyspace)
     # - do whatever to get the values you want to cache
     # - construct a collection of arguments and Hitnmiss entities
     [
@@ -130,14 +130,14 @@ class MostRecentPrice
 end
 ```
 
-The `self.fetch_cacheable_entity(*args)` method is responsible for obtaining the
+The `self.get(*args)` method is responsible for obtaining the
 value that you want to cache by whatever means necessary and returning a
 `Hitnmiss::Entity` containing the value. *Note:* The `*args` passed into
-`self.fetch_cacheable_entity` are whatever the args are that are passed into
-`prime_entity_cache` and `fetch` when those methods are called.
+`self.get` are whatever the args are that are passed into
+`prime` and `fetch` when those methods are called.
 
 If you wish to support the repository-level methods `.all`, `.clear`, and
-`.prime_cache`, you *must* define the `self.fetch_cacheable_entities` method on
+`.prime_all`, you *must* define the `self.get_all` method on
 the repository.  This method must return a collection of hashes describing the
 `args` that would be used to fetch an entity and the corresponding
 `Hitnmiss::Entity`.  See example above.
@@ -146,7 +146,7 @@ the repository.  This method must return a collection of hashes describing the
 
 In some cases you might need to set the expiration to be a different
 value for each value. This is generally when you get back information in
-the `self.fetch_cacheable_entity` method that you use to compute the expiration. Once
+the `self.get` method that you use to compute the expiration. Once
 you have the expiration for that value you can set it by passing the
 expiration into the `Hitnmiss::Entity` constructor as seen below.
 *Note:* The expiration in the `Hitnmiss::Entity` will take precedence
@@ -159,7 +159,7 @@ class MostRecentPrice
 
   default_expiration 134
 
-  def self.fetch_cacheable_entity(*args)
+  def self.get(*args)
     # - do whatever to get the value you want to cache
     # - construct a Hitnmiss::Entity with the value and optionally a
     #   result based expiration. If no result based expiration is
@@ -171,23 +171,23 @@ end
 
 ### Priming an entity
 
-Once you have defined the `self.fetch_cacheable_entity` method. You can actually use
+Once you have defined the `self.get` method. You can actually use
 your cache repository. One way you might want to use it is to force the
-repository to fetch the value using `self.fetch_cacheable_entity` and cache the
-resulting value. This can be done using the `prime_entity_cache` method as seen
+repository to fetch the value using `self.get` and cache the
+resulting value. This can be done using the `prime` method as seen
 below.
 
 ```ruby
-MostRecentPrice.prime_entity_cache(current_user.id)
+MostRecentPrice.prime(current_user.id)
 ```
 
 ### Priming the entire repository
 
-You can use `self.prime_cache` to prime the entire repository if the repository
-implements `self.fetch_cacheable_entity`.
+You can use `self.prime_all` to prime the entire repository if the repository
+implements `self.get`.
 
 ```ruby
-MostRecentPrice.prime_cache
+MostRecentPrice.prime_all
 ```
 
 ### Fetching a value

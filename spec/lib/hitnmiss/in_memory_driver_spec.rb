@@ -90,7 +90,7 @@ describe "Hitnmiss::InMemoryDriver" do
         'keyspace.some_other_key' => { 'value' => 'bar', 'expiration' => 33 }
       }
       driver.instance_variable_set(:@cache, cache)
-      driver.del('keyspace.some_key')
+      driver.delete('keyspace.some_key')
       expect(cache.has_key?('keyspace.some_key')).to eq false
     end
   end

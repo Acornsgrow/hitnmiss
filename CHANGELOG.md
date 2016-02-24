@@ -6,17 +6,17 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
-* Changed `Repository.prime_cache` to prime entire repository
-* Added `Repository.prime_entity_cache` to prime an individual entity
-* Renamed `Repository.perform` to `.fetch_cacheable_entity`
-* Added `Repository.fetch_cacheable_entities` for `.prime_cache`
+* Renamed `Repository.prime_cache` to `Repository.prime`
+* Added `Repository.prime_all` to prime entire repository
+* Renamed `Repository.perform` to `Repository.get`
+* Added `Repository.get_all` for `Repository.prime_all`
 * Added `Repository.all` to get all cached values
 * Added `Repository.delete` to delete a cached value
 * Added `Repository.clear` to clear all cached values
 * Added `Driver#all` interface to get all cached values
-* Added `Driver#del` interface to delete a cached value
+* Added `Driver#delete` interface to delete a cached value
 * Added `Driver#clear` interface to clear all cached values
-* Changed `InMemoryDriver` to implement `#all`, `#del`, and `#clear`
+* Changed `InMemoryDriver` to implement `#all`, `#delete`, and `#clear`
 
 #### v0.1.2
 

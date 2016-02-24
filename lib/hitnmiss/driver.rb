@@ -12,7 +12,7 @@ module Hitnmiss
       raise Hitnmiss::Errors::NotImplemented
     end
 
-    def del(key)
+    def delete(key)
       raise Hitnmiss::Errors::NotImplemented
     end
 

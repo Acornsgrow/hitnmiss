@@ -29,22 +29,22 @@ module Hitnmiss
                "#{components.join(KEY_COMPONENT_SEPARATOR)}"
       end
 
-      def fetch_cacheable_entity(*args)
+      def get(*args)
         raise Hitnmiss::Errors::NotImplemented
       end
 
-      def fetch_cacheable_entities(keyspace)
+      def get_all(keyspace)
         raise Hitnmiss::Errors::NotImplemented
       end
 
-      def prime_entity_cache(*args)
-        cacheable_entity = fetch_cacheable_entity(*args)
+      def prime(*args)
+        cacheable_entity = get(*args)
         cache_entity(args, cacheable_entity)
         return cacheable_entity.value
       end
 
-      def prime_cache
-        cacheable_entities = fetch_cacheable_entities(keyspace)
+      def prime_all
+        cacheable_entities = get_all(keyspace)
         cacheable_entities.each do |cacheable_entity_hash|
           args = cacheable_entity_hash.fetch(:args)
           cacheable_entity = cacheable_entity_hash.fetch(:entity)
@@ -55,14 +55,14 @@ module Hitnmiss
       def fetch(*args)
         value = Hitnmiss.driver(@driver_name).get(generate_key(*args))
         if value.nil?
-          return prime_entity_cache(*args)
+          return prime(*args)
         else
           return value
         end
       end
 
       def delete(*args)
-        Hitnmiss.driver(@driver_name).del(generate_key(*args))
+        Hitnmiss.driver(@driver_name).delete(generate_key(*args))
       end
 
       def all

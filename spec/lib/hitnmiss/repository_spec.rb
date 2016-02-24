@@ -40,28 +40,28 @@ describe Hitnmiss::Repository do
     end
   end
 
-  describe ".fetch_cacheable_entity" do
+  describe ".get" do
     it "raises error indicating not implemented" do
       repo_klass = Class.new do
         include Hitnmiss::Repository
       end
 
-      expect { repo_klass.fetch_cacheable_entity }.to raise_error(Hitnmiss::Errors::NotImplemented)
+      expect { repo_klass.get }.to raise_error(Hitnmiss::Errors::NotImplemented)
     end
   end
 
-  describe ".fetch_cacheable_entities" do
+  describe ".get_all" do
     it "raises error indicating not implemented" do
       repo_klass = Class.new do
         include Hitnmiss::Repository
       end
 
       keyspace = double('keyspace')
-      expect { repo_klass.fetch_cacheable_entities(keyspace) }.to raise_error(Hitnmiss::Errors::NotImplemented)
+      expect { repo_klass.get_all(keyspace) }.to raise_error(Hitnmiss::Errors::NotImplemented)
     end
   end
 
-  describe ".prime_entity_cache" do
+  describe ".prime" do
     it "obtains the cacheable entity" do
       repo_klass = Class.new do
         include Hitnmiss::Repository
@@ -70,9 +70,9 @@ describe Hitnmiss::Repository do
 
       args = double('arguments')
       Hitnmiss.register_driver(:my_driver, double.as_null_object)
-      expect(repo_klass).to receive(:fetch_cacheable_entity).with(args).and_return(double.as_null_object)
+      expect(repo_klass).to receive(:get).with(args).and_return(double.as_null_object)
 
-      repo_klass.prime_entity_cache(args)
+      repo_klass.prime(args)
     end
 
     context "when cacheable entity has an expiration" do
@@ -85,7 +85,7 @@ describe Hitnmiss::Repository do
           include Hitnmiss::Repository
           self.driver :my_driver
 
-          def self.fetch_cacheable_entity(*args)
+          def self.get(*args)
             Hitnmiss::Entity.new('myval', 22223)
           end
         end
@@ -95,7 +95,7 @@ describe Hitnmiss::Repository do
 
         expect(driver).to receive(:set).with(key, 'myval', 22223)
 
-        repo_klass.prime_entity_cache(args)
+        repo_klass.prime(args)
       end
     end
 
@@ -110,7 +110,7 @@ describe Hitnmiss::Repository do
           include Hitnmiss::Repository
           self.driver :my_driver
 
-          def self.fetch_cacheable_entity(*args)
+          def self.get(*args)
             Hitnmiss::Entity.new('myval')
           end
         end
@@ -122,7 +122,7 @@ describe Hitnmiss::Repository do
 
         expect(driver).to receive(:set).with(key, 'myval', default_expiration)
 
-        repo_klass.prime_entity_cache(args)
+        repo_klass.prime(args)
       end
     end
 
@@ -134,13 +134,13 @@ describe Hitnmiss::Repository do
       entity = double(value: 'foovalue', expiration: 212).as_null_object
 
       args = double('arguments')
-      allow(repo_klass).to receive(:fetch_cacheable_entity).with(args).and_return(entity)
+      allow(repo_klass).to receive(:get).with(args).and_return(entity)
 
-      expect(repo_klass.prime_entity_cache(args)).to eq('foovalue')
+      expect(repo_klass.prime(args)).to eq('foovalue')
     end
   end
 
-  describe ".prime_cache" do
+  describe ".prime_all" do
     it 'caches cacheable entities' do
       key1 = double('key 1')
       key2 = double('key 2')
@@ -151,7 +151,7 @@ describe Hitnmiss::Repository do
         include Hitnmiss::Repository
         self.driver :my_driver
 
-        def self.fetch_cacheable_entities(keyspace)
+        def self.get_all(keyspace)
           [
             { args: ['key1'], entity: Hitnmiss::Entity.new('myval', 22223) },
             { args: ['key2'], entity: Hitnmiss::Entity.new('myval2', 43564) }
@@ -166,7 +166,7 @@ describe Hitnmiss::Repository do
       expect(driver).to receive(:set).with(key1, 'myval', 22223)
       expect(driver).to receive(:set).with(key2, 'myval2', 43564)
 
-      repo_klass.prime_cache
+      repo_klass.prime_all
     end
   end
 
@@ -194,7 +194,7 @@ describe Hitnmiss::Repository do
       Hitnmiss.register_driver(:my_driver, driver)
       key = double('key')
       allow(repo_klass).to receive(:generate_key).and_return(key)
-      allow(repo_klass).to receive(:prime_entity_cache)
+      allow(repo_klass).to receive(:prime)
 
       expect(driver).to receive(:get).with(key)
 
@@ -253,7 +253,7 @@ describe Hitnmiss::Repository do
         allow(repo_klass).to receive(:generate_key).and_return(key)
         Hitnmiss.register_driver(:my_driver, driver)
         allow(driver).to receive(:get).with(key).and_return(nil)
-        expect(repo_klass).to receive(:prime_entity_cache).with('aoeuaoeuao')
+        expect(repo_klass).to receive(:prime).with('aoeuaoeuao')
 
         repo_klass.fetch('aoeuaoeuao')
       end
@@ -269,7 +269,7 @@ describe Hitnmiss::Repository do
         allow(repo_klass).to receive(:generate_key).and_return(key)
         Hitnmiss.register_driver(:my_driver, driver)
         allow(driver).to receive(:get).with(key).and_return(nil)
-        allow(repo_klass).to receive(:prime_entity_cache).and_return('porkpork')
+        allow(repo_klass).to receive(:prime).and_return('porkpork')
 
         expect(repo_klass.fetch('aoeuaoeuao')).to eq('porkpork')
       end
@@ -283,7 +283,7 @@ describe Hitnmiss::Repository do
         self.driver :my_driver
       end
 
-      driver = double('cache driver', del: nil)
+      driver = double('cache driver', delete: nil)
       expect(repo_klass).to receive(:generate_key).with('auaeuaoeua')
       Hitnmiss.register_driver(:my_driver, driver)
 
@@ -301,7 +301,7 @@ describe Hitnmiss::Repository do
       key = double('key')
       allow(repo_klass).to receive(:generate_key).and_return(key)
 
-      expect(driver).to receive(:del).with(key)
+      expect(driver).to receive(:delete).with(key)
 
       repo_klass.delete('aoeuaoeuao')
     end
