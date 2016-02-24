@@ -8,7 +8,7 @@ describe Hitnmiss::Repository do
         driver :some_driver
       end
 
-      driver_name = repo_klass.instance_variable_get(:@driver_name) 
+      driver_name = repo_klass.instance_variable_get(:@driver_name)
       expect(driver_name).to eq(:some_driver)
     end
   end
@@ -22,7 +22,7 @@ describe Hitnmiss::Repository do
         default_expiration expiration
       end
 
-      actual_default_expiration = repo_klass.instance_variable_get(:@default_expiration) 
+      actual_default_expiration = repo_klass.instance_variable_get(:@default_expiration)
       expect(actual_default_expiration).to eq(expiration)
     end
   end
@@ -60,7 +60,7 @@ describe Hitnmiss::Repository do
       args = double('arguments')
       Hitnmiss.register_driver(:my_driver, double.as_null_object)
       expect(repo_klass).to receive(:perform).with(args).and_return(double.as_null_object)
-      
+
       repo_klass.prime_cache(args)
     end
 
@@ -83,7 +83,7 @@ describe Hitnmiss::Repository do
         allow(repo_klass).to receive(:generate_key).and_return(key)
 
         expect(driver).to receive(:set).with(key, 'myval', 22223)
-        
+
         repo_klass.prime_cache(args)
       end
     end
@@ -110,7 +110,7 @@ describe Hitnmiss::Repository do
         repo_klass.instance_variable_set(:@default_expiration, default_expiration)
 
         expect(driver).to receive(:set).with(key, 'myval', default_expiration)
-        
+
         repo_klass.prime_cache(args)
       end
     end
@@ -124,7 +124,7 @@ describe Hitnmiss::Repository do
 
       args = double('arguments')
       allow(repo_klass).to receive(:perform).with(args).and_return(entity)
-     
+
       expect(repo_klass.prime_cache(args)).to eq('foovalue')
     end
   end
@@ -161,21 +161,42 @@ describe Hitnmiss::Repository do
     end
 
     context "when cached value was found" do
-      it "returns the already cached value" do
-        repo_klass = Class.new do
-          include Hitnmiss::Repository
-          driver :my_driver
+      context "when the cached value is the boolean false" do
+        it "returns the already cached value" do
+          repo_klass = Class.new do
+            include Hitnmiss::Repository
+            driver :my_driver
+          end
+
+          driver = double('cache driver')
+          key = double('key')
+          value = false
+          allow(repo_klass).to receive(:generate_key).and_return(key)
+          Hitnmiss.register_driver(:my_driver, driver)
+
+          expect(driver).to receive(:get).with(key).and_return(value)
+
+          expect(repo_klass.fetch('aoeuaoeuao')).to eq(value)
         end
+      end
 
-        driver = double('cache driver')
-        key = double('key')
-        value = double('cached value')
-        allow(repo_klass).to receive(:generate_key).and_return(key)
-        Hitnmiss.register_driver(:my_driver, driver)
+      context "when the cached value is not the boolean false" do
+        it "returns the already cached value" do
+          repo_klass = Class.new do
+            include Hitnmiss::Repository
+            driver :my_driver
+          end
 
-        expect(driver).to receive(:get).with(key).and_return(value)
+          driver = double('cache driver')
+          key = double('key')
+          value = double('cached value')
+          allow(repo_klass).to receive(:generate_key).and_return(key)
+          Hitnmiss.register_driver(:my_driver, driver)
 
-        expect(repo_klass.fetch('aoeuaoeuao')).to eq(value)
+          expect(driver).to receive(:get).with(key).and_return(value)
+
+          expect(repo_klass.fetch('aoeuaoeuao')).to eq(value)
+        end
       end
     end
 

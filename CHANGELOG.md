@@ -5,6 +5,7 @@ This is intended to help keep people informed about notable changes between
 versions, as well as provide a rough history.
 
 #### Next Release
+* Fix fetching cached boolean `false` value
 
 #### v0.1.1
 
