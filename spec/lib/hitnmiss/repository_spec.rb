@@ -322,4 +322,20 @@ describe Hitnmiss::Repository do
       expect(repo_klass.all).to eq entities
     end
   end
+
+  describe '.clear' do
+    it 'clears all the values' do
+      repo_klass = Class.new do
+        include Hitnmiss::Repository
+        driver :my_driver
+      end
+
+      driver = double('cache driver')
+      Hitnmiss.register_driver(:my_driver, driver)
+
+      expect(driver).to receive(:clear)
+
+      repo_klass.clear
+    end
+  end
 end

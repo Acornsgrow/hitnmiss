@@ -69,6 +69,10 @@ module Hitnmiss
         Hitnmiss.driver(@driver_name).all(keyspace)
       end
 
+      def clear
+        Hitnmiss.driver(@driver_name).clear
+      end
+
       private
 
       def cache_entity(args, cacheable_entity)
