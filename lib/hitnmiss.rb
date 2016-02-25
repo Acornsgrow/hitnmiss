@@ -3,6 +3,8 @@ require "hitnmiss/errors"
 require "hitnmiss/repository"
 require "hitnmiss/driver_registry"
 require "hitnmiss/entity"
+require "hitnmiss/hit"
+require "hitnmiss/miss"
 require "hitnmiss/driver"
 require "hitnmiss/in_memory_driver"
 
