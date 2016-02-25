@@ -73,12 +73,7 @@ describe "Hitnmiss::InMemoryDriver" do
         'notkeyspace.some_key' => { 'value' => 'baz', 'expiration' => 43 }
       }
       driver.instance_variable_set(:@cache, cache)
-      expect(driver.all('keyspace')).to match_array(
-        [
-          { 'value' => 'foo', 'expiration' => 23 },
-          { 'value' => 'bar', 'expiration' => 33 }
-        ]
-      )
+      expect(driver.all('keyspace')).to match_array(['foo', 'bar'])
     end
   end
 

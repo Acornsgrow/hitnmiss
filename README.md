@@ -9,7 +9,7 @@ Hitnmiss is a Ruby gem that provides support for using the Repository
 pattern for read-through, write-behind caching. It is built heavily
 around using POROs (Plain Old Ruby Objects). This means it is intended
 to be used with all kinds of Ruby applications from plain Ruby command
-line tools, to framework (Rails, Sinatra, Rack, Lotus, etc.) based web
+line tools, to framework (Rails, Sinatra, Rack, Hanami, etc.) based web
 apps.
 
 ## Installation
@@ -102,9 +102,9 @@ the answer is one of two ways.
 * Fetching an individual cacheable entity
 * Fetching all of the repository's cacheable entities
 
-Both of these scenarios are supported by defining the `self.get(*args)` method
-and the `self.get_all(keyspace)` method respectively.  See the following
-example.
+Both of these scenarios are supported by defining the `get(*args)`
+method and the `get_all(keyspace)` method respectively.  See the
+following example.
 
 ```ruby
 # lib/cache_repositories/most_recent_price.rb
@@ -113,13 +113,13 @@ class MostRecentPrice
 
   default_expiration 134
 
-  def self.get(*args)
+  def get(*args)
     # - do whatever to get the value you want to cache
     # - construct a Hitnmiss::Entity with the value
     Hitnmiss::Entity.new('some value')
   end
 
-  def self.get_all(keyspace)
+  def get_all(keyspace)
     # - do whatever to get the values you want to cache
     # - construct a collection of arguments and Hitnmiss entities
     [
@@ -130,27 +130,27 @@ class MostRecentPrice
 end
 ```
 
-The `self.get(*args)` method is responsible for obtaining the
-value that you want to cache by whatever means necessary and returning a
+The `get(*args)` method is responsible for obtaining the value that you
+want to cache by whatever means necessary and returning a
 `Hitnmiss::Entity` containing the value. *Note:* The `*args` passed into
-`self.get` are whatever the args are that are passed into
-`prime` and `fetch` when those methods are called.
+`get` method are whatever the args are that are passed into `prime` and
+`fetch` methods when they are called.
 
-If you wish to support the repository-level methods `.all`, `.clear`, and
-`.prime_all`, you *must* define the `self.get_all` method on
-the repository.  This method must return a collection of hashes describing the
-`args` that would be used to fetch an entity and the corresponding
-`Hitnmiss::Entity`.  See example above.
+If you wish to support the repository-level methods `all`, `clear`, and
+`prime_all`, you *must* define the `get_all` method on the repository.
+This method must return a collection of hashes describing the `args`
+that would be used to fetch an entity and the corresponding
+`Hitnmiss::Entity`. See example above.
 
 ### Set Cache Source based Expiration
 
 In some cases you might need to set the expiration to be a different
 value for each value. This is generally when you get back information in
-the `self.get` method that you use to compute the expiration. Once
-you have the expiration for that value you can set it by passing the
-expiration into the `Hitnmiss::Entity` constructor as seen below.
-*Note:* The expiration in the `Hitnmiss::Entity` will take precedence
-over the `default_expiration`.
+the `get` method that you use to compute the expiration. Once you have
+the expiration for that value you can set it by passing the expiration
+into the `Hitnmiss::Entity` constructor as seen below.  *Note:* The
+expiration in the `Hitnmiss::Entity` will take precedence over the
+`default_expiration`.
 
 ```ruby
 # lib/cache_repositories/most_recent_price.rb
@@ -159,7 +159,7 @@ class MostRecentPrice
 
   default_expiration 134
 
-  def self.get(*args)
+  def get(*args)
     # - do whatever to get the value you want to cache
     # - construct a Hitnmiss::Entity with the value and optionally a
     #   result based expiration. If no result based expiration is
@@ -171,49 +171,52 @@ end
 
 ### Priming an entity
 
-Once you have defined the `self.get` method. You can actually use
-your cache repository. One way you might want to use it is to force the
-repository to fetch the value using `self.get` and cache the
-resulting value. This can be done using the `prime` method as seen
-below.
+Once you have defined the `get` method. You can construct an instance of
+your cache repository and use it. One way you might want to use it is to
+force the repository to cache a value. This can be done using the
+`prime` method as seen below.
 
 ```ruby
-MostRecentPrice.prime(current_user.id)
+MostRecentPrice.new.prime(current_user.id) # => cached_value
 ```
 
 ### Priming the entire repository
 
-You can use `self.prime_all` to prime the entire repository if the repository
-implements `self.get`.
+You can use `prime_all` to prime the entire repository if the repository
+implements `get_all`.
 
 ```ruby
-MostRecentPrice.prime_all
+MostRecentPrice.new.prime_all # => [cached values, ...]
 ```
 
 ### Fetching a value
 
-You can also use your cache repository to of course fetch a particular
-cached value by doing something like the following.
+You can also use your cache repository to fetch a particular cached
+value by doing the following.
 
 ```ruby
-MostRecentPrice.fetch(current_user.id)
+MostRecentPrice.new.fetch(current_user.id) # => cached_value
 ```
 
 ### Deleting a cached value
 
-You can delete a cached value by called `.delete` with the arguments used to
-fetch it.
+You can delete a cached value by calling the `delete` with the arguments
+used to fetch it.
 
 ```ruby
-MostRecentPrice.delete(current_user.id)
+repository = MostRecentPrice.new
+# cache some values ex: repository.prime(current_user.id)
+repository.delete(current_user.id)
 ```
 
 ### Clearing a repository
 
-You can clear the entire repository of cached values using `.clear`.
+You can clear the entire repository of cached values using `clear`.
 
 ```ruby
-MostRecentPrice.clear
+repository = MostRecentPrice.new
+# cache some values ex: repository.prime(current_user.id)
+repository.clear
 ```
 
 ## Development
@@ -231,7 +234,7 @@ a git tag for the version, push git commits and tags, and push the
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at
-https://github.com/[USERNAME]/hitnmiss. This project is intended to be a
+https://github.com/Acornsgrow/hitnmiss. This project is intended to be a
 safe, welcoming space for collaboration, and contributors are expected
 to adhere to the [Contributor Covenant](http://contributor-covenant.org)
 code of conduct.

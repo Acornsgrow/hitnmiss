@@ -32,8 +32,8 @@ module Hitnmiss
     def all(keyspace)
       @mutex.synchronize do
         matching_values = []
-        @cache.each do |key, value|
-          matching_values << value if match_keyspace?(key, keyspace)
+        @cache.each do |key, entity|
+          matching_values << entity.fetch('value') if match_keyspace?(key, keyspace)
         end
         return matching_values
       end
