@@ -16,7 +16,7 @@ describe Hitnmiss::Repository do
 
     context 'when NOT given a driver identifier' do
       context 'when driver has been set' do
-        it 'returns the driver identifer' do
+        it 'returns the driver identifier' do
           repo_klass = Class.new do
             include Hitnmiss::Repository
             driver :some_driver
