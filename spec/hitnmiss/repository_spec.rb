@@ -426,7 +426,7 @@ describe Hitnmiss::Repository do
         self.driver :my_driver
       end
 
-      entities = double('collection of entities')
+      entities = double('collection of cached values')
 
       driver = double('cache driver', all: entities)
       Hitnmiss.register_driver(:my_driver, driver)
