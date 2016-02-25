@@ -45,10 +45,11 @@ module Hitnmiss
 
       def prime_all
         cacheable_entities = get_all(keyspace)
-        cacheable_entities.each do |cacheable_entity_hash|
+        return cacheable_entities.map do |cacheable_entity_hash|
           args = cacheable_entity_hash.fetch(:args)
           cacheable_entity = cacheable_entity_hash.fetch(:entity)
           cache_entity(args, cacheable_entity)
+          cacheable_entity.value
         end
       end
 

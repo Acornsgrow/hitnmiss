@@ -145,7 +145,6 @@ describe Hitnmiss::Repository do
       key1 = double('key 1')
       key2 = double('key 2')
       driver = double('cache driver')
-      args = double('arguments')
 
       repo_klass = Class.new do
         include Hitnmiss::Repository
@@ -167,6 +166,28 @@ describe Hitnmiss::Repository do
       expect(driver).to receive(:set).with(key2, 'myval2', 43564)
 
       repo_klass.prime_all
+    end
+
+    it 'returns the values of cached entities' do
+      driver = double('cache driver')
+
+      repo_klass = Class.new do
+        include Hitnmiss::Repository
+        self.driver :my_driver
+
+        def self.get_all(keyspace)
+          [
+            { args: ['key1'], entity: Hitnmiss::Entity.new('myval', 22223) },
+            { args: ['key2'], entity: Hitnmiss::Entity.new('myval2', 43564) }
+          ]
+        end
+      end
+      Hitnmiss.register_driver(:my_driver, driver)
+
+      allow(repo_klass).to receive(:generate_key)
+      allow(driver).to receive(:set)
+
+      expect(repo_klass.prime_all).to match_array(['myval', 'myval2'])
     end
   end
 
