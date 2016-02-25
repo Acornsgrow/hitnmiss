@@ -6,6 +6,10 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+* Changed class style interface to object style interface
+* Fixed `InMemoryDriver#all` to return values not hash of value & expiration
+* Add return values to Public API Documentation examples
+
 #### v0.2.0
 
 * Renamed `Repository.prime_cache` to `Repository.prime`
