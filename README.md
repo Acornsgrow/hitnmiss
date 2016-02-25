@@ -6,11 +6,11 @@
 # Hitnmiss
 
 Hitnmiss is a Ruby gem that provides support for using the Repository
-pattern for read-through, write-behind caching. It is built heavily
-around using POROs (Plain Old Ruby Objects). This means it is intended
-to be used with all kinds of Ruby applications from plain Ruby command
-line tools, to framework (Rails, Sinatra, Rack, Hanami, etc.) based web
-apps.
+pattern for read-through, write-behind caching in a thread-safe way. It
+is built heavily around using POROs (Plain Old Ruby Objects). This means
+it is intended to be used with all kinds of Ruby applications from plain
+Ruby command line tools, to framework (Rails, Sinatra, Rack, Hanami,
+etc.) based web apps, etc.
 
 ## Installation
 
@@ -40,7 +40,6 @@ cache repository. This is done by defining a class for your repository
 and mixing `Hitnmiss::Repository` into it using `include`.
 
 ```ruby
-# lib/cache_repositories/most_recent_price.rb
 class MostRecentPrice
   include Hitnmiss::Repository
 end
@@ -48,29 +47,27 @@ end
 
 The value of having defined repositories for accessing your caches aids
 in a number of ways. First, it centralizes cache key generation.
-Secondly, it centralizes/standardizes access to the cache rather than
+Secondly, it centralizes & standardizes access to the cache rather than
 having code spread across your app duplicating key generation and
 access. Third, it provides clean separation between the cache
 persistence layer and the business representation.
 
 ###  Set a Repositories Cache Driver
 
-Hitnmiss defaults to the `InMemoryDriver`, but if an alternate driver is
-needed, or if a separate `InMemoryDriver` is required a new driver can be
-registered
+Hitnmiss defaults to the provided `Hitnmiss::InMemoryDriver`, but if an alternate
+driver is needed a new driver can be registered as seen below.
 
 ```ruby
 # config/hitnmiss.rb
-Hitnmiss.register_driver(:my_driver, Hitnmiss::InMemoryDriver.new)
+Hitnmiss.register_driver(:my_driver, SomeAlternativeDriver.new)
 ```
 
-Once you have registered a new driver you need to tell `Hitnmiss` what
+Once you have registered the new driver you can tell `Hitnmiss` what
 driver to use for this particular repository. The following is an example
-of how one would accomplish setting the repository driver to the driver we
-just registered.
+of how one would accomplish setting the repository driver to the driver
+that was just registered.
 
 ```ruby
-# lib/cache_repositories/most_recent_price.rb
 class MostRecentPrice
   include Hitnmiss::Repository
 
@@ -80,17 +77,16 @@ end
 
 ### Set the Default Expiration
 
-More often than not, your caching use case will have a static, known
-expiration that would like to use all the time. In these scenarios you
+More often than not your caching use case will have a static/known
+expiration that you want to use all the time. In these scenarios you
 can set the `default_expiration` to manage the expiration across the
 entire repository. The following is an example of how one would do this.
 
 ```ruby
-# lib/cache_repositories/most_recent_price.rb
 class MostRecentPrice
   include Hitnmiss::Repository
 
-  default_expiration 134
+  default_expiration 134 # expiration in seconds from when value cached
 end
 ```
 
@@ -103,11 +99,10 @@ the answer is one of two ways.
 * Fetching all of the repository's cacheable entities
 
 Both of these scenarios are supported by defining the `get(*args)`
-method and the `get_all(keyspace)` method respectively.  See the
-following example.
+method or the `get_all(keyspace)` method respectively in your cache
+repository class. See the following example.
 
 ```ruby
-# lib/cache_repositories/most_recent_price.rb
 class MostRecentPrice
   include Hitnmiss::Repository
 
@@ -132,28 +127,30 @@ end
 
 The `get(*args)` method is responsible for obtaining the value that you
 want to cache by whatever means necessary and returning a
-`Hitnmiss::Entity` containing the value. *Note:* The `*args` passed into
-`get` method are whatever the args are that are passed into `prime` and
-`fetch` methods when they are called.
+`Hitnmiss::Entity` containing the value. **Note:** The `*args` passed
+into the `get(*args)` method are whatever the arguments are that are
+passed into `prime` and `fetch` methods when they are called. Defining
+the `get(*args)` method is **required** if you want to be able to cache
+values or fetch cached values using the `prime` or `fetch` methods.
 
-If you wish to support the repository-level methods `all`, `clear`, and
-`prime_all`, you *must* define the `get_all` method on the repository.
-This method must return a collection of hashes describing the `args`
-that would be used to fetch an entity and the corresponding
-`Hitnmiss::Entity`. See example above.
+If you wish to support priming the cache for an entire repository using
+the `prime_all` method, you **must** define the `get_all(keyspace)`
+method on the repository class. This method **must** return a collection
+of hashes describing the `args` that would be used to fetch an entity
+and the corresponding `Hitnmiss::Entity`. See example above.
 
 ### Set Cache Source based Expiration
 
 In some cases you might need to set the expiration to be a different
-value for each value. This is generally when you get back information in
-the `get` method that you use to compute the expiration. Once you have
-the expiration for that value you can set it by passing the expiration
-into the `Hitnmiss::Entity` constructor as seen below.  *Note:* The
-expiration in the `Hitnmiss::Entity` will take precedence over the
+value for each cached value. This is generally needed when you
+information back from a remote entity in the `get(*args)` method and you
+use it to compute the expiration. Once you have the expiration for that
+value you can set it by passing the expiration into the
+`Hitnmiss::Entity` constructor as seen below. **Note:** The expiration
+in the `Hitnmiss::Entity` will take precedence over the
 `default_expiration`.
 
 ```ruby
-# lib/cache_repositories/most_recent_price.rb
 class MostRecentPrice
   include Hitnmiss::Repository
 
@@ -171,22 +168,25 @@ end
 
 ### Priming an entity
 
-Once you have defined the `get` method. You can construct an instance of
-your cache repository and use it. One way you might want to use it is to
-force the repository to cache a value. This can be done using the
-`prime` method as seen below.
+Once you have defined the `get(*args)` method you can construct an
+instance of your cache repository and use it. One way you might want to
+use it is to force the repository to cache a value. This can be done
+using the `prime` method as seen below.
 
 ```ruby
-MostRecentPrice.new.prime(current_user.id) # => cached_value
+repository = MostRecentPrice.new
+repository.prime(current_user.id) # => cached_value
 ```
 
 ### Priming the entire repository
 
-You can use `prime_all` to prime the entire repository if the repository
-implements `get_all`.
+You can use `prime_all` method to prime the entire repository. **Note:**
+The repository class must define the `get_all(keyspace)` method for this
+to work. See the "Define Cache Source" section above for details.
 
 ```ruby
-MostRecentPrice.new.prime_all # => [cached values, ...]
+repository = MostRecentPrice.new
+repository.prime_all # => [cached values, ...]
 ```
 
 ### Fetching a value
@@ -195,13 +195,14 @@ You can also use your cache repository to fetch a particular cached
 value by doing the following.
 
 ```ruby
-MostRecentPrice.new.fetch(current_user.id) # => cached_value
+repository = MostRecentPrice.new
+repository.fetch(current_user.id) # => cached_value
 ```
 
 ### Deleting a cached value
 
-You can delete a cached value by calling the `delete` with the arguments
-used to fetch it.
+You can delete a cached value by calling the `delete` method with the
+same arguments used to fetch it.
 
 ```ruby
 repository = MostRecentPrice.new
@@ -211,7 +212,8 @@ repository.delete(current_user.id)
 
 ### Clearing a repository
 
-You can clear the entire repository of cached values using `clear`.
+You can clear the entire repository of cached values by calling the
+`clear` method.
 
 ```ruby
 repository = MostRecentPrice.new
