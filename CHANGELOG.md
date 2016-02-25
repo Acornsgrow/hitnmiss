@@ -6,6 +6,8 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+#### v0.3.0
+
 * Changed class style interface to object style interface
 * Fixed `InMemoryDriver#all` to return values not hash of value & expiration
 * Add return values to Public API Documentation examples
