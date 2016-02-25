@@ -22,5 +22,5 @@ RSpec.configure do |config|
   #     --seed 1234
   config.order = :random
   
-	config.default_formatter = 'doc'
+  config.default_formatter = 'doc'
 end
