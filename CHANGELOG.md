@@ -6,6 +6,8 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+#### v0.2.0
+
 * Renamed `Repository.prime_cache` to `Repository.prime`
 * Added `Repository.prime_all` to prime entire repository
 * Renamed `Repository.perform` to `Repository.get`
