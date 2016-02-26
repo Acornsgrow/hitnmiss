@@ -98,7 +98,7 @@ describe Hitnmiss::Repository do
     end
   end
 
-  describe '#get' do
+  describe '#fetch' do
     it 'raises error indicating not implemented' do
       repo_klass = Class.new do
         include Hitnmiss::Repository
@@ -108,7 +108,7 @@ describe Hitnmiss::Repository do
     end
   end
 
-  describe '#get_all' do
+  describe '#fetch_all' do
     it 'raises error indicating not implemented' do
       repo_klass = Class.new do
         include Hitnmiss::Repository
@@ -281,7 +281,8 @@ describe Hitnmiss::Repository do
         self.driver :my_driver
       end
 
-      driver = double('cache driver', get: double('value'))
+      hit = Hitnmiss::Driver::Hit.new('somevalue')
+      driver = double('cache driver', get: hit)
       Hitnmiss.register_driver(:my_driver, driver)
 
       repository = repo_klass.new
@@ -295,6 +296,7 @@ describe Hitnmiss::Repository do
         driver :my_driver
       end
 
+      hit = Hitnmiss::Driver::Hit.new('somevalue')
       driver = double('cache driver')
       Hitnmiss.register_driver(:my_driver, driver)
 
@@ -303,68 +305,46 @@ describe Hitnmiss::Repository do
       allow(repository).to receive(:generate_key).and_return(key)
       allow(repository).to receive(:prime)
 
-      expect(driver).to receive(:get).with(key)
+      expect(driver).to receive(:get).with(key).and_return(hit)
 
       repository.get('aoeuaoeuao')
     end
 
-    context 'when cached value was found' do
-      context 'when the cached value is the boolean false' do
-        it 'returns the already cached value' do
-          repo_klass = Class.new do
-            include Hitnmiss::Repository
-            driver :my_driver
-          end
-
-          driver = double('cache driver')
-          Hitnmiss.register_driver(:my_driver, driver)
-
-          repository = repo_klass.new
-          key = double('key')
-          value = false
-          allow(repository).to receive(:generate_key).and_return(key)
-
-          expect(driver).to receive(:get).with(key).and_return(value)
-          expect(repository.get('aoeuaoeuao')).to eq(value)
-        end
-      end
-
-      context 'when the cached value is not the boolean false' do
-        it 'returns the already cached value' do
-          repo_klass = Class.new do
-            include Hitnmiss::Repository
-            driver :my_driver
-          end
-
-          driver = double('cache driver')
-          Hitnmiss.register_driver(:my_driver, driver)
-
-          repository = repo_klass.new
-          key = double('key')
-          value = double('cached value')
-          allow(repository).to receive(:generate_key).and_return(key)
-
-          expect(driver).to receive(:get).with(key).and_return(value)
-
-          expect(repository.get('aoeuaoeuao')).to eq(value)
-        end
-      end
-    end
-
-    context 'when cached value was NOT found' do
-      it 'primes the cache' do
+    context 'when driver responds with a hit' do
+      it 'returns the already cached value' do
         repo_klass = Class.new do
           include Hitnmiss::Repository
           driver :my_driver
         end
 
+        hit = Hitnmiss::Driver::Hit.new('somevalue')
         driver = double('cache driver')
         Hitnmiss.register_driver(:my_driver, driver)
 
         repository = repo_klass.new
         key = double('key')
         allow(repository).to receive(:generate_key).and_return(key)
-        allow(driver).to receive(:get).with(key).and_return(nil)
+
+        expect(driver).to receive(:get).with(key).and_return(hit)
+        expect(repository.get('aoeuaoeuao')).to eq('somevalue')
+      end
+    end
+
+    context 'when driver responds with a miss' do
+      it 'primes the cache' do
+        repo_klass = Class.new do
+          include Hitnmiss::Repository
+          driver :my_driver
+        end
+
+        miss = Hitnmiss::Driver::Miss.new
+        driver = double('cache driver')
+        Hitnmiss.register_driver(:my_driver, driver)
+
+        repository = repo_klass.new
+        key = double('key')
+        allow(repository).to receive(:generate_key).and_return(key)
+        allow(driver).to receive(:get).with(key).and_return(miss)
         expect(repository).to receive(:prime).with('aoeuaoeuao')
 
         repository.get('aoeuaoeuao')
@@ -376,6 +356,27 @@ describe Hitnmiss::Repository do
           driver :my_driver
         end
 
+        miss = Hitnmiss::Driver::Miss.new
+        driver = double('cache driver')
+        Hitnmiss.register_driver(:my_driver, driver)
+
+        repository = repo_klass.new
+        key = double('key')
+        allow(repository).to receive(:generate_key).and_return(key)
+        allow(driver).to receive(:get).with(key).and_return(miss)
+        allow(repository).to receive(:prime).and_return('porkpork')
+
+        expect(repository.get('aoeuaoeuao')).to eq('porkpork')
+      end
+    end
+
+    context 'when driver responds with neither a hit or miss' do
+      it 'raises an unsupported driver response exception' do
+        repo_klass = Class.new do
+          include Hitnmiss::Repository
+          driver :my_driver
+        end
+
         driver = double('cache driver')
         Hitnmiss.register_driver(:my_driver, driver)
 
@@ -383,9 +384,9 @@ describe Hitnmiss::Repository do
         key = double('key')
         allow(repository).to receive(:generate_key).and_return(key)
         allow(driver).to receive(:get).with(key).and_return(nil)
-        allow(repository).to receive(:prime).and_return('porkpork')
 
-        expect(repository.get('aoeuaoeuao')).to eq('porkpork')
+        expect { repository.get('aoeuaoeuao') }.to raise_error(Hitnmiss::Repository::UnsupportedDriverResponse,
+          "Driver ':my_driver' did not return an object of the support types (Hitnmiss::Driver::Hit, Hitnmiss::Driver::Miss)")
       end
     end
   end

@@ -2,6 +2,7 @@ module Hitnmiss
   module Repository
     KEY_COMPONENT_SEPARATOR = '.'.freeze
     KEY_COMPONENT_TYPE_SEPARATOR = ':'.freeze
+    class UnsupportedDriverResponse < StandardError; end
 
     def self.included(mod)
       mod.extend(ClassMethods)
@@ -68,11 +69,13 @@ module Hitnmiss
       end
 
       def get(*args)
-        value = Hitnmiss.driver(self.class.driver).get(generate_key(*args))
-        if value.nil?
+        hit_or_miss = Hitnmiss.driver(self.class.driver).get(generate_key(*args))
+        if hit_or_miss.is_a?(Hitnmiss::Driver::Miss)
           return prime(*args)
+        elsif hit_or_miss.is_a?(Hitnmiss::Driver::Hit)
+          return hit_or_miss.value
         else
-          return value
+          raise UnsupportedDriverResponse.new("Driver '#{self.class.driver.inspect}' did not return an object of the support types (Hitnmiss::Driver::Hit, Hitnmiss::Driver::Miss)")
         end
       end
 

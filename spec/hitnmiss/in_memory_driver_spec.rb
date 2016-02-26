@@ -30,36 +30,38 @@ describe "Hitnmiss::InMemoryDriver" do
   describe "#get" do
     context "when key matches something cached" do
       context "when we have passed the expiration" do
-        it "returns nil indicating a miss" do
+        it "returns a Hitnmiss::Driver::Miss indicating a miss" do
           driver = Hitnmiss::InMemoryDriver.new
           cur_time = Time.now.utc
           Timecop.freeze(cur_time) do
             cache = { 'some_key' => { 'value' => 'foo', 'expiration' => (cur_time.to_i - 423423) } }
             driver.instance_variable_set(:@cache, cache)
-            expect(driver.get('some_key')).to eq(nil)
+            expect(driver.get('some_key')).to be_a(Hitnmiss::Driver::Miss)
           end
         end
       end
 
       context "when we have NOT passed the expiration" do
-        it "returns the cached value" do
+        it "returns a Hitnmiss::Driver::Hit with the cached value" do
           driver = Hitnmiss::InMemoryDriver.new
           cur_time = Time.now.utc
           Timecop.freeze(cur_time) do
             cache = { 'some_key' => { 'value' => 'foo', 'expiration' => (cur_time.to_i + 234232) } }
             driver.instance_variable_set(:@cache, cache)
-            expect(driver.get('some_key')).to eq('foo')
+            hit = driver.get('some_key')
+            expect(hit).to be_a(Hitnmiss::Driver::Hit)
+            expect(hit.value).to eq('foo')
           end
         end
       end
     end
 
     context "when key does not match something cached" do
-      it "returns nil indicating a miss" do
+      it "returns a Hitnmiss::Driver::Miss indicating a miss" do
         driver = Hitnmiss::InMemoryDriver.new
         cache = { 'some_key' => { 'value' => 'foo', 'expiration' => 23 } }
         driver.instance_variable_set(:@cache, cache)
-        expect(driver.get('some_other_key')).to eq(nil)
+        expect(driver.get('some_other_key')).to be_a(Hitnmiss::Driver::Miss)
       end
     end
   end
