@@ -6,6 +6,15 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+* Change `InMemoryDriver` to return `Hitnmiss::Driver::Hit` and
+  `Hitnmiss::Driver::Miss` instances.
+* Change driver interface to require `<#driver instance>.get` method to return a
+  `Hitnmiss::Driver::Hit` instance or a `Hitnmiss::Driver::Miss` instance
+* Add `Hitnmiss::Driver::Miss` class
+* Add `Hitnmiss::Driver::Hit` class
+* Change private methods `get`, `get_all` to `fetch` & `fetch_all`
+* Change public API method `fetch(*args)` to `get(*args)`
+
 #### v0.3.0
 
 * Changed class style interface to object style interface
