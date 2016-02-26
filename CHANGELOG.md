@@ -6,6 +6,8 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+#### v0.4.0
+
 * Changed `InMemoryDriver` to return `Hitnmiss::Driver::Hit` and
   `Hitnmiss::Driver::Miss` instances.
 * Changed driver interface to require `<#driver instance>.get` method to return a
