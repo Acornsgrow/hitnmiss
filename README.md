@@ -90,7 +90,7 @@ class MostRecentPrice
 end
 ```
 
-### Define Cache Source
+### Define Fetcher Methods
 
 You may be asking yourself, "How does the cache value get set?" Well,
 the answer is one of two ways.
@@ -98,8 +98,8 @@ the answer is one of two ways.
 * Fetching an individual cacheable entity
 * Fetching all of the repository's cacheable entities
 
-Both of these scenarios are supported by defining the `get(*args)`
-method or the `get_all(keyspace)` method respectively in your cache
+Both of these scenarios are supported by defining the `fetch(*args)`
+method or the `fetch_all(keyspace)` method respectively in your cache
 repository class. See the following example.
 
 ```ruby
@@ -108,13 +108,15 @@ class MostRecentPrice
 
   default_expiration 134
 
-  def get(*args)
+  private
+
+  def fetch(*args)
     # - do whatever to get the value you want to cache
     # - construct a Hitnmiss::Entity with the value
     Hitnmiss::Entity.new('some value')
   end
 
-  def get_all(keyspace)
+  def fetch_all(keyspace)
     # - do whatever to get the values you want to cache
     # - construct a collection of arguments and Hitnmiss entities
     [
@@ -125,25 +127,25 @@ class MostRecentPrice
 end
 ```
 
-The `get(*args)` method is responsible for obtaining the value that you
+The `fetch(*args)` method is responsible for obtaining the value that you
 want to cache by whatever means necessary and returning a
 `Hitnmiss::Entity` containing the value. **Note:** The `*args` passed
-into the `get(*args)` method are whatever the arguments are that are
-passed into `prime` and `fetch` methods when they are called. Defining
-the `get(*args)` method is **required** if you want to be able to cache
-values or fetch cached values using the `prime` or `fetch` methods.
+into the `fetch(*args)` method are whatever the arguments are that are
+passed into `prime` and `get` methods when they are called. Defining
+the `fetch(*args)` method is **required** if you want to be able to cache
+values or get cached values using the `prime` or `get` methods.
 
 If you wish to support priming the cache for an entire repository using
-the `prime_all` method, you **must** define the `get_all(keyspace)`
+the `prime_all` method, you **must** define the `fetch_all(keyspace)`
 method on the repository class. This method **must** return a collection
-of hashes describing the `args` that would be used to fetch an entity
+of hashes describing the `args` that would be used to get an entity
 and the corresponding `Hitnmiss::Entity`. See example above.
 
 ### Set Cache Source based Expiration
 
 In some cases you might need to set the expiration to be a different
-value for each cached value. This is generally needed when you
-information back from a remote entity in the `get(*args)` method and you
+value for each cached value. This is generally needed when you get
+information back from a remote entity in the `fetch(*args)` method and you
 use it to compute the expiration. Once you have the expiration for that
 value you can set it by passing the expiration into the
 `Hitnmiss::Entity` constructor as seen below. **Note:** The expiration
@@ -156,7 +158,9 @@ class MostRecentPrice
 
   default_expiration 134
 
-  def get(*args)
+  private
+
+  def fetch(*args)
     # - do whatever to get the value you want to cache
     # - construct a Hitnmiss::Entity with the value and optionally a
     #   result based expiration. If no result based expiration is
@@ -168,7 +172,7 @@ end
 
 ### Priming an entity
 
-Once you have defined the `get(*args)` method you can construct an
+Once you have defined the `fetch(*args)` method you can construct an
 instance of your cache repository and use it. One way you might want to
 use it is to force the repository to cache a value. This can be done
 using the `prime` method as seen below.
@@ -181,28 +185,28 @@ repository.prime(current_user.id) # => cached_value
 ### Priming the entire repository
 
 You can use `prime_all` method to prime the entire repository. **Note:**
-The repository class must define the `get_all(keyspace)` method for this
-to work. See the "Define Cache Source" section above for details.
+The repository class must define the `fetch_all(keyspace)` method for this
+to work. See the "Define Fetcher Methods" section above for details.
 
 ```ruby
 repository = MostRecentPrice.new
 repository.prime_all # => [cached values, ...]
 ```
 
-### Fetching a value
+### Getting a value
 
-You can also use your cache repository to fetch a particular cached
+You can also use your cache repository to get a particular cached
 value by doing the following.
 
 ```ruby
 repository = MostRecentPrice.new
-repository.fetch(current_user.id) # => cached_value
+repository.get(current_user.id) # => cached_value
 ```
 
 ### Deleting a cached value
 
 You can delete a cached value by calling the `delete` method with the
-same arguments used to fetch it.
+same arguments used to get it.
 
 ```ruby
 repository = MostRecentPrice.new

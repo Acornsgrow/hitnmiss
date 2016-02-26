@@ -31,7 +31,9 @@ describe Hitnmiss do
       repo_klass = Class.new do
         include Hitnmiss::Repository
 
-        def get(*args)
+        private
+
+        def fetch(*args)
           Hitnmiss::Entity.new('foo', 235)
         end
       end
@@ -47,7 +49,9 @@ describe Hitnmiss do
       repo_klass = Class.new do
         include Hitnmiss::Repository
 
-        def get(*args)
+        private
+
+        def fetch(*args)
           Hitnmiss::Entity.new('foo', 235)
         end
       end
@@ -66,38 +70,42 @@ describe Hitnmiss do
     end
   end
 
-  describe "fetching a not already cached value" do
+  describe "getting a not already cached value" do
     it "primes the cache, and returns the cached value" do
       repo_klass = Class.new do
         include Hitnmiss::Repository
 
-        def get(*args)
+        private
+
+        def fetch(*args)
           Hitnmiss::Entity.new('foo', 235)
         end
       end
 
-      allow(repo_klass).to receive(:name).and_return('test_fetch_noncached')
+      allow(repo_klass).to receive(:name).and_return('test_get_noncached')
 
-      expect(repo_klass.new.fetch('some_token')).to eq('foo')
+      expect(repo_klass.new.get('some_token')).to eq('foo')
     end
   end
 
-  describe "fetching an already cached value" do
+  describe "getting an already cached value" do
     it "returns the cached value" do
       repo_klass = Class.new do
         include Hitnmiss::Repository
 
-        def get(*args)
+        private
+
+        def fetch(*args)
           Hitnmiss::Entity.new('foo', 235)
         end
       end
 
-      allow(repo_klass).to receive(:name).and_return('test_fetch_cached')
+      allow(repo_klass).to receive(:name).and_return('test_get_cached')
 
       repository = repo_klass.new
       repository.prime
 
-      expect(repository.fetch('some_token')).to eq('foo')
+      expect(repository.get('some_token')).to eq('foo')
     end
   end
 
@@ -106,7 +114,9 @@ describe Hitnmiss do
       repo_klass = Class.new do
         include Hitnmiss::Repository
 
-        def get_all(keyspace)
+        private
+
+        def fetch_all(keyspace)
           [
             { args: ['key1'], entity: Hitnmiss::Entity.new('myval', 22223) },
             { args: ['key2'], entity: Hitnmiss::Entity.new('myval2', 43564) }
@@ -122,12 +132,14 @@ describe Hitnmiss do
     end
   end
 
-  describe 'fetch all cached values' do
+  describe 'get all cached values' do
     it 'returns all the currently cached values' do
       repo_klass = Class.new do
         include Hitnmiss::Repository
 
-        def get(*args)
+        private
+
+        def fetch(*args)
           if args.first && args.first == 'hi'
             Hitnmiss::Entity.new('hello', 235)
           else
@@ -151,7 +163,9 @@ describe Hitnmiss do
       repo_klass = Class.new do
         include Hitnmiss::Repository
 
-        def get(*args)
+        private
+
+        def fetch(*args)
           Hitnmiss::Entity.new('foo', 235)
         end
       end
@@ -171,7 +185,9 @@ describe Hitnmiss do
       repo_klass = Class.new do
         include Hitnmiss::Repository
 
-        def get(*args)
+        private
+
+        def fetch(*args)
           if args.first && args.first == 'hi'
             Hitnmiss::Entity.new('hello', 235)
           else

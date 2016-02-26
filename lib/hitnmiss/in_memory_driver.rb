@@ -1,5 +1,7 @@
 module Hitnmiss
-  class InMemoryDriver < Hitnmiss::Driver
+  class InMemoryDriver
+    include Hitnmiss::Driver::Interface
+
     def initialize
       @mutex = Mutex.new
       @cache = {}

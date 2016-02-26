@@ -104,7 +104,7 @@ describe Hitnmiss::Repository do
         include Hitnmiss::Repository
       end
 
-      expect { repo_klass.new.get }.to raise_error(Hitnmiss::Errors::NotImplemented)
+      expect { repo_klass.new.send(:fetch) }.to raise_error(Hitnmiss::Errors::NotImplemented)
     end
   end
 
@@ -115,7 +115,7 @@ describe Hitnmiss::Repository do
       end
 
       keyspace = double('keyspace')
-      expect { repo_klass.new.get_all(keyspace) }.to raise_error(Hitnmiss::Errors::NotImplemented)
+      expect { repo_klass.new.send(:fetch_all, keyspace) }.to raise_error(Hitnmiss::Errors::NotImplemented)
     end
   end
 
@@ -129,7 +129,7 @@ describe Hitnmiss::Repository do
       args = double('arguments')
       Hitnmiss.register_driver(:my_driver, double.as_null_object)
       repository = repo_klass.new
-      expect(repository).to receive(:get).with(args).and_return(double.as_null_object)
+      expect(repository).to receive(:fetch).with(args).and_return(double.as_null_object)
 
       repository.prime(args)
     end
@@ -143,7 +143,9 @@ describe Hitnmiss::Repository do
           include Hitnmiss::Repository
           self.driver :my_driver
 
-          def get(*args)
+          private
+
+          def fetch(*args)
             Hitnmiss::Entity.new('myval', 22223)
           end
         end
@@ -172,7 +174,9 @@ describe Hitnmiss::Repository do
           include Hitnmiss::Repository
           self.driver :my_driver
 
-          def get(*args)
+          private
+
+          def fetch(*args)
             Hitnmiss::Entity.new('myval')
           end
         end
@@ -200,7 +204,7 @@ describe Hitnmiss::Repository do
 
       repository = repo_klass.new
 
-      allow(repository).to receive(:get).with(args).and_return(entity)
+      allow(repository).to receive(:fetch).with(args).and_return(entity)
 
       expect(repository.prime(args)).to eq('foovalue')
     end
@@ -215,7 +219,9 @@ describe Hitnmiss::Repository do
         include Hitnmiss::Repository
         self.driver :my_driver
 
-        def get_all(keyspace)
+        private
+
+        def fetch_all(keyspace)
           [
             { args: ['key1'], entity: Hitnmiss::Entity.new('myval', 22223) },
             { args: ['key2'], entity: Hitnmiss::Entity.new('myval2', 43564) }
@@ -244,7 +250,9 @@ describe Hitnmiss::Repository do
         include Hitnmiss::Repository
         self.driver :my_driver
 
-        def get_all(keyspace)
+        private
+
+        def fetch_all(keyspace)
           [
             { args: ['key1'], entity: Hitnmiss::Entity.new('myval', 22223) },
             { args: ['key2'], entity: Hitnmiss::Entity.new('myval2', 43564) }
@@ -266,7 +274,7 @@ describe Hitnmiss::Repository do
     end
   end
 
-  describe '#fetch' do
+  describe '#get' do
     it 'generates the cache key' do
       repo_klass = Class.new do
         include Hitnmiss::Repository
@@ -278,7 +286,7 @@ describe Hitnmiss::Repository do
 
       repository = repo_klass.new
       expect(repository).to receive(:generate_key).with('auaeuaoeua')
-      repository.fetch('auaeuaoeua')
+      repository.get('auaeuaoeua')
     end
 
     it 'attempts to obtained the cached value' do
@@ -297,7 +305,7 @@ describe Hitnmiss::Repository do
 
       expect(driver).to receive(:get).with(key)
 
-      repository.fetch('aoeuaoeuao')
+      repository.get('aoeuaoeuao')
     end
 
     context 'when cached value was found' do
@@ -317,7 +325,7 @@ describe Hitnmiss::Repository do
           allow(repository).to receive(:generate_key).and_return(key)
 
           expect(driver).to receive(:get).with(key).and_return(value)
-          expect(repository.fetch('aoeuaoeuao')).to eq(value)
+          expect(repository.get('aoeuaoeuao')).to eq(value)
         end
       end
 
@@ -338,7 +346,7 @@ describe Hitnmiss::Repository do
 
           expect(driver).to receive(:get).with(key).and_return(value)
 
-          expect(repository.fetch('aoeuaoeuao')).to eq(value)
+          expect(repository.get('aoeuaoeuao')).to eq(value)
         end
       end
     end
@@ -359,7 +367,7 @@ describe Hitnmiss::Repository do
         allow(driver).to receive(:get).with(key).and_return(nil)
         expect(repository).to receive(:prime).with('aoeuaoeuao')
 
-        repository.fetch('aoeuaoeuao')
+        repository.get('aoeuaoeuao')
       end
 
       it 'returns the newly cached value' do
@@ -377,7 +385,7 @@ describe Hitnmiss::Repository do
         allow(driver).to receive(:get).with(key).and_return(nil)
         allow(repository).to receive(:prime).and_return('porkpork')
 
-        expect(repository.fetch('aoeuaoeuao')).to eq('porkpork')
+        expect(repository.get('aoeuaoeuao')).to eq('porkpork')
       end
     end
   end
