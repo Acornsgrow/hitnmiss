@@ -1,23 +1,35 @@
 module Hitnmiss
-  class Driver
-    def set(key, value, expiration_in_seconds)
-      raise Hitnmiss::Errors::NotImplemented
+  module Driver
+    class Hit
+      attr_reader :value
+
+      def initialize(value)
+        @value = value
+      end
     end
 
-    def get(key)
-      raise Hitnmiss::Errors::NotImplemented
-    end
+    class Miss; end
 
-    def all(keyspace)
-      raise Hitnmiss::Errors::NotImplemented
-    end
+    module Interface
+      def set(key, value, expiration_in_seconds)
+        raise Hitnmiss::Errors::NotImplemented
+      end
 
-    def delete(key)
-      raise Hitnmiss::Errors::NotImplemented
-    end
+      def get(key)
+        raise Hitnmiss::Errors::NotImplemented
+      end
 
-    def clear(keyspace)
-      raise Hitnmiss::Errors::NotImplemented
+      def all(keyspace)
+        raise Hitnmiss::Errors::NotImplemented
+      end
+
+      def delete(key)
+        raise Hitnmiss::Errors::NotImplemented
+      end
+
+      def clear(keyspace)
+        raise Hitnmiss::Errors::NotImplemented
+      end
     end
   end
 end

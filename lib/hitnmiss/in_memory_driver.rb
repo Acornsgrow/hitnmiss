@@ -1,5 +1,7 @@
 module Hitnmiss
-  class InMemoryDriver < Hitnmiss::Driver
+  class InMemoryDriver
+    include Hitnmiss::Driver::Interface
+
     def initialize
       @mutex = Mutex.new
       @cache = {}
@@ -20,12 +22,12 @@ module Hitnmiss
 
       if cached_entity
         if Time.now.utc.to_i > cached_entity['expiration']
-          return nil
+          return Hitnmiss::Driver::Miss.new 
         else
-          return cached_entity['value']
+          return Hitnmiss::Driver::Hit.new(cached_entity['value'])
         end
       else
-        return nil
+        return Hitnmiss::Driver::Miss.new
       end
     end
 

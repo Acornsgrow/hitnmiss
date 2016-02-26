@@ -2,11 +2,25 @@ module Hitnmiss
   module Repository
     KEY_COMPONENT_SEPARATOR = '.'.freeze
     KEY_COMPONENT_TYPE_SEPARATOR = ':'.freeze
+    class UnsupportedDriverResponse < StandardError; end
 
     def self.included(mod)
       mod.extend(ClassMethods)
       mod.include(InstanceMethods)
+      mod.include(Fetcher)
       mod.driver :in_memory
+    end
+
+    module Fetcher
+      private
+
+      def fetch(*args)
+        raise Hitnmiss::Errors::NotImplemented
+      end
+
+      def fetch_all(keyspace)
+        raise Hitnmiss::Errors::NotImplemented
+      end
     end
 
     module ClassMethods
@@ -45,7 +59,7 @@ module Hitnmiss
       end
 
       def prime_all
-        cacheable_entities = get_all(self.class.keyspace)
+        cacheable_entities = fetch_all(self.class.keyspace)
         return cacheable_entities.map do |cacheable_entity_hash|
           args = cacheable_entity_hash.fetch(:args)
           cacheable_entity = cacheable_entity_hash.fetch(:entity)
@@ -54,27 +68,21 @@ module Hitnmiss
         end
       end
 
-      def fetch(*args)
-        value = Hitnmiss.driver(self.class.driver).get(generate_key(*args))
-        if value.nil?
+      def get(*args)
+        hit_or_miss = Hitnmiss.driver(self.class.driver).get(generate_key(*args))
+        if hit_or_miss.is_a?(Hitnmiss::Driver::Miss)
           return prime(*args)
+        elsif hit_or_miss.is_a?(Hitnmiss::Driver::Hit)
+          return hit_or_miss.value
         else
-          return value
+          raise UnsupportedDriverResponse.new("Driver '#{self.class.driver.inspect}' did not return an object of the support types (Hitnmiss::Driver::Hit, Hitnmiss::Driver::Miss)")
         end
       end
 
       def prime(*args)
-        cacheable_entity = get(*args)
+        cacheable_entity = fetch(*args)
         cache_entity(args, cacheable_entity)
         return cacheable_entity.value
-      end
-
-      def get(*args)
-        raise Hitnmiss::Errors::NotImplemented
-      end
-
-      def get_all(keyspace)
-        raise Hitnmiss::Errors::NotImplemented
       end
 
       private
