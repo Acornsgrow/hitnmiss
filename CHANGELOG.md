@@ -6,6 +6,10 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+#### v1.0.0
+
+* Changed version to 1.0 since the api is stable
+
 #### v0.4.0
 
 * Changed `InMemoryDriver` to return `Hitnmiss::Driver::Hit` and
