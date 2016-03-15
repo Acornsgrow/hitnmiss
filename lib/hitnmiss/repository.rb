@@ -1,4 +1,5 @@
 require 'hitnmiss/repository/fetcher'
+require 'hitnmiss/repository/driver_management'
 
 module Hitnmiss
   module Repository
@@ -7,21 +8,13 @@ module Hitnmiss
     class UnsupportedDriverResponse < StandardError; end
 
     def self.included(mod)
+      mod.extend(DriverManagement)
       mod.extend(ClassMethods)
       mod.include(InstanceMethods)
       mod.include(Fetcher)
-      mod.driver :in_memory
     end
 
     module ClassMethods
-      def driver(driver_name=nil)
-        if driver_name
-          @driver_name = driver_name
-        else
-          @driver_name
-        end
-      end
-
       def default_expiration(expiration_in_seconds=nil)
         if expiration_in_seconds
           @default_expiration = expiration_in_seconds
