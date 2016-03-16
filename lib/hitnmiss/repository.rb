@@ -9,9 +9,9 @@ module Hitnmiss
     def self.included(mod)
       mod.extend(DriverManagement)
       mod.include(KeyGeneration)
+      mod.include(Fetcher)
       mod.extend(ClassMethods)
       mod.include(InstanceMethods)
-      mod.include(Fetcher)
     end
 
     module ClassMethods
