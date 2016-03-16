@@ -6,6 +6,7 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+* Added: `fingerprint` and `updated_at` attributes to `Hitnmiss::Driver::Hit`
 * Added: `setnoexp` method to the in-memory driver
 * Added: `setnoexp` method to driver interface
 
