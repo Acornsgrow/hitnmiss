@@ -15,6 +15,10 @@ module Hitnmiss
         raise Hitnmiss::Errors::NotImplemented
       end
 
+      def setnoexp(key, value)
+        raise Hitnmiss::Errors::NotImplemented
+      end
+
       def get(key)
         raise Hitnmiss::Errors::NotImplemented
       end

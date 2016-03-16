@@ -42,6 +42,14 @@ describe Hitnmiss::Driver do
       end
     end
 
+    describe "#setnoexp" do
+      it "raises error indicating not implemented" do
+        expect { subject.setnoexp(double('key'),
+                                  double('value')) }.to \
+        raise_error(Hitnmiss::Errors::NotImplemented)
+      end
+    end
+
     describe "#get" do
       it "raises error indicating not implemented" do
         expect { subject.get(double('key')) }.to \
