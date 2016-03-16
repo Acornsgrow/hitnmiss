@@ -1,15 +1,15 @@
 require 'hitnmiss/repository/fetcher'
 require 'hitnmiss/repository/driver_management'
+require 'hitnmiss/repository/key_generation'
 
 module Hitnmiss
   module Repository
-    KEY_COMPONENT_SEPARATOR = '.'.freeze
-    KEY_COMPONENT_TYPE_SEPARATOR = ':'.freeze
     class UnsupportedDriverResponse < StandardError; end
 
     def self.included(mod)
       mod.include(Fetcher)
       mod.extend(DriverManagement)
+      mod.include(KeyGeneration)
       mod.extend(ClassMethods)
       mod.include(InstanceMethods)
     end
@@ -21,10 +21,6 @@ module Hitnmiss
         else
           @default_expiration 
         end
-      end
-
-      def keyspace
-        name
       end
     end
 
@@ -78,14 +74,6 @@ module Hitnmiss
           Hitnmiss.driver(self.class.driver).set(generate_key(*args), cacheable_entity.value,
                      self.class.default_expiration)
         end
-      end
-
-      def generate_key(*args)
-        components = args.map do |arg|
-          "#{arg.class.name}#{KEY_COMPONENT_TYPE_SEPARATOR}#{arg}"
-        end
-        return "#{self.class.keyspace}#{KEY_COMPONENT_SEPARATOR}" \
-               "#{components.join(KEY_COMPONENT_SEPARATOR)}"
       end
     end
   end

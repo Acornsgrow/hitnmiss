@@ -54,7 +54,7 @@ module Hitnmiss
     end
 
     def match_keyspace?(key, keyspace)
-      regex = Regexp.new("^#{keyspace}\\" + Repository::KEY_COMPONENT_SEPARATOR)
+      regex = Regexp.new("^#{keyspace}\\" + Repository::KeyGeneration::KEY_COMPONENT_SEPARATOR)
       return regex.match(key)
     end
   end

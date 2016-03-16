@@ -83,21 +83,6 @@ describe Hitnmiss::Repository do
     end
   end
 
-  describe '#generate_key' do
-    it 'generates a key from the class and the given arguments' do
-      repo_klass = Class.new do
-        include Hitnmiss::Repository
-      end
-
-      allow(repo_klass).to receive(:name).and_return('HooptyJack')
-
-      repository = repo_klass.new
-
-      expect(repository.send(:generate_key, 'true', true, 1, 'zar')).to \
-        eq('HooptyJack.String:true.TrueClass:true.Fixnum:1.String:zar')
-    end
-  end
-
   describe '#fetch' do
     it 'raises error indicating not implemented' do
       repo_klass = Class.new do
