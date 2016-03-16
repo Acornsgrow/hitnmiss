@@ -6,7 +6,9 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+* Added: `setnoexp` method to the in-memory driver
 * Added: `setnoexp` method to driver interface
+
 #### v1.0.0
 
 * Changed version to 1.0 since the api is stable

@@ -27,31 +27,54 @@ describe "Hitnmiss::InMemoryDriver" do
     end
   end
 
+  describe '#setnoexp' do
+    it 'caches the given value, using the given key' do
+      driver = Hitnmiss::InMemoryDriver.new
+      driver.setnoexp('some_key', 'some_value')
+      cache = driver.instance_variable_get(:@cache)
+      expect(cache['some_key']['value']).to eq('some_value')
+      expect(cache['some_key'].has_key?('expiration')).to eq(false)
+    end
+  end
+
   describe "#get" do
     context "when key matches something cached" do
-      context "when we have passed the expiration" do
-        it "returns a Hitnmiss::Driver::Miss indicating a miss" do
-          driver = Hitnmiss::InMemoryDriver.new
-          cur_time = Time.now.utc
-          Timecop.freeze(cur_time) do
-            cache = { 'some_key' => { 'value' => 'foo', 'expiration' => (cur_time.to_i - 423423) } }
-            driver.instance_variable_set(:@cache, cache)
-            expect(driver.get('some_key')).to be_a(Hitnmiss::Driver::Miss)
+      context "when expiration exists" do
+        context "when we have passed the expiration" do
+          it "returns a Hitnmiss::Driver::Miss indicating a miss" do
+            driver = Hitnmiss::InMemoryDriver.new
+            cur_time = Time.now.utc
+            Timecop.freeze(cur_time) do
+              cache = { 'some_key' => { 'value' => 'foo', 'expiration' => (cur_time.to_i - 423423) } }
+              driver.instance_variable_set(:@cache, cache)
+              expect(driver.get('some_key')).to be_a(Hitnmiss::Driver::Miss)
+            end
+          end
+        end
+
+        context "when we have NOT passed the expiration" do
+          it "returns a Hitnmiss::Driver::Hit with the cached value" do
+            driver = Hitnmiss::InMemoryDriver.new
+            cur_time = Time.now.utc
+            Timecop.freeze(cur_time) do
+              cache = { 'some_key' => { 'value' => 'foo', 'expiration' => (cur_time.to_i + 234232) } }
+              driver.instance_variable_set(:@cache, cache)
+              hit = driver.get('some_key')
+              expect(hit).to be_a(Hitnmiss::Driver::Hit)
+              expect(hit.value).to eq('foo')
+            end
           end
         end
       end
 
-      context "when we have NOT passed the expiration" do
+      context "when expiration does NOT exist" do
         it "returns a Hitnmiss::Driver::Hit with the cached value" do
           driver = Hitnmiss::InMemoryDriver.new
-          cur_time = Time.now.utc
-          Timecop.freeze(cur_time) do
-            cache = { 'some_key' => { 'value' => 'foo', 'expiration' => (cur_time.to_i + 234232) } }
-            driver.instance_variable_set(:@cache, cache)
-            hit = driver.get('some_key')
-            expect(hit).to be_a(Hitnmiss::Driver::Hit)
-            expect(hit.value).to eq('foo')
-          end
+          cache = { 'some_key' => { 'value' => 'foo' } }
+          driver.instance_variable_set(:@cache, cache)
+          hit = driver.get('some_key')
+          expect(hit).to be_a(Hitnmiss::Driver::Hit)
+          expect(hit.value).to eq('foo')
         end
       end
     end

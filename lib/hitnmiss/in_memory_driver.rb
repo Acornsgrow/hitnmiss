@@ -14,6 +14,12 @@ module Hitnmiss
       end
     end
 
+    def setnoexp(key, value)
+      @mutex.synchronize do
+        @cache[key] = { 'value' => value }
+      end
+    end
+
     def get(key)
       cached_entity = nil
       @mutex.synchronize do
@@ -21,8 +27,12 @@ module Hitnmiss
       end
 
       if cached_entity
-        if Time.now.utc.to_i > cached_entity['expiration']
-          return Hitnmiss::Driver::Miss.new 
+        if cached_entity.has_key?('expiration')
+          if Time.now.utc.to_i > cached_entity['expiration']
+            return Hitnmiss::Driver::Miss.new 
+          else
+            return Hitnmiss::Driver::Hit.new(cached_entity['value'])
+          end
         else
           return Hitnmiss::Driver::Hit.new(cached_entity['value'])
         end
