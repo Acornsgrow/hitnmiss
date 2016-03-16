@@ -1,10 +1,12 @@
 module Hitnmiss
   module Driver
     class Hit
-      attr_reader :value
+      attr_reader :value, :updated_at, :fingerprint
 
-      def initialize(value)
+      def initialize(value, updated_at: nil, fingerprint: nil)
         @value = value
+        @updated_at = updated_at
+        @fingerprint = fingerprint
       end
     end
 
