@@ -15,25 +15,29 @@ describe "Hitnmiss::InMemoryDriver" do
   end
 
   describe "#set" do
-    it "caches the given value, using the given key and expiration" do
-      driver = Hitnmiss::InMemoryDriver.new
-      now = Time.now.utc
-      Timecop.freeze(now) do
-        driver.set('some_key', 'some_value', 1)
+    context 'when given entity has an expiration' do
+      it "caches the given value, using the given key and expiration" do
+        driver = Hitnmiss::InMemoryDriver.new
+        entity = Hitnmiss::Entity.new('some_value', 1)
+        now = Time.now.utc
+        Timecop.freeze(now) do
+          driver.set('some_key', entity)
+        end
+        cache = driver.instance_variable_get(:@cache)
+        expect(cache['some_key']['value']).to eq('some_value')
+        expect(cache['some_key']['expiration']).to eq(now.to_i + 1)
       end
-      cache = driver.instance_variable_get(:@cache)
-      expect(cache['some_key']['value']).to eq('some_value')
-      expect(cache['some_key']['expiration']).to eq(now.to_i + 1)
     end
-  end
 
-  describe '#setnoexp' do
-    it 'caches the given value, using the given key' do
-      driver = Hitnmiss::InMemoryDriver.new
-      driver.setnoexp('some_key', 'some_value')
-      cache = driver.instance_variable_get(:@cache)
-      expect(cache['some_key']['value']).to eq('some_value')
-      expect(cache['some_key'].has_key?('expiration')).to eq(false)
+    context 'when given entity does NOT have an expiration' do
+      it 'caches the given value, using the given key' do
+        driver = Hitnmiss::InMemoryDriver.new
+        entity = Hitnmiss::Entity.new('some_value')
+        driver.set('some_key', entity)
+        cache = driver.instance_variable_get(:@cache)
+        expect(cache['some_key']['value']).to eq('some_value')
+        expect(cache['some_key'].has_key?('expiration')).to eq(false)
+      end
     end
   end
 

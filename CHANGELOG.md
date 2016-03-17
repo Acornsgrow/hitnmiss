@@ -6,6 +6,7 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+* Changed: in-memory driver set, setnoexp to the new driver interface set method
 * Changed: `set` method of driver interface to take key and entity
 * Removed: `setnoexp` method from driver interface
 * Added: `fingerprint` to `Hitnmiss::Entity`
