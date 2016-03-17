@@ -66,14 +66,18 @@ module Hitnmiss
 
       private
 
-      def cache_entity(args, cacheable_entity)
-        if cacheable_entity.expiration
-          Hitnmiss.driver(self.class.driver).set(generate_key(*args), cacheable_entity.value,
-                     cacheable_entity.expiration)
+      def enrich_entity_expiration(unenriched_entity)
+        if unenriched_entity.expiration
+          return unenriched_entity
         else
-          Hitnmiss.driver(self.class.driver).set(generate_key(*args), cacheable_entity.value,
-                     self.class.default_expiration)
+          return Hitnmiss::Entity.new(unenriched_entity.value,
+                                      self.class.default_expiration)
         end
+      end
+
+      def cache_entity(args, cacheable_entity)
+        entity = enrich_entity_expiration(cacheable_entity)
+        Hitnmiss.driver(self.class.driver).set(generate_key(*args), entity)
       end
     end
   end
