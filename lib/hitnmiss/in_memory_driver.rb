@@ -7,10 +7,16 @@ module Hitnmiss
       @cache = {}
     end
 
-    def set(key, value, expiration_in_seconds)
-      expiration = Time.now.utc.to_i + expiration_in_seconds
-      @mutex.synchronize do
-        @cache[key] = { 'value' => value, 'expiration' => expiration }
+    def set(key, entity)
+      if entity.expiration
+        expiration = Time.now.utc.to_i + entity.expiration
+        @mutex.synchronize do
+          @cache[key] = { 'value' => entity.value, 'expiration' => expiration }
+        end
+      else
+        @mutex.synchronize do
+          @cache[key] = { 'value' => entity.value }
+        end
       end
     end
 
