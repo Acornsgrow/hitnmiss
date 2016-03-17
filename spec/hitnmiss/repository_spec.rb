@@ -124,6 +124,8 @@ describe Hitnmiss::Repository do
         key = double('key')
         args = double('arguments')
 
+        entity = Hitnmiss::Entity.new('myval', 22223)
+
         repo_klass = Class.new do
           include Hitnmiss::Repository
           self.driver :my_driver
@@ -135,6 +137,8 @@ describe Hitnmiss::Repository do
           end
         end
 
+        allow(Hitnmiss::Entity).to receive(:new).and_return(entity)
+
         driver = double('cache driver')
         Hitnmiss.register_driver(:my_driver, driver)
 
@@ -142,7 +146,7 @@ describe Hitnmiss::Repository do
 
         allow(repository).to receive(:generate_key).and_return(key)
 
-        expect(driver).to receive(:set).with(key, 'myval', 22223)
+        expect(driver).to receive(:set).with(key, entity)
 
         repository.prime(args)
       end
@@ -154,6 +158,8 @@ describe Hitnmiss::Repository do
         driver = double('cache driver')
         args = double('arguments')
         default_expiration = double('default expiration')
+
+        entity = Hitnmiss::Entity.new('myval')
 
         repo_klass = Class.new do
           include Hitnmiss::Repository
@@ -167,13 +173,15 @@ describe Hitnmiss::Repository do
         end
         Hitnmiss.register_driver(:my_driver, driver)
 
+        allow(Hitnmiss::Entity).to receive(:new).and_return(entity)
+
         repository = repo_klass.new
 
         allow(repository).to receive(:generate_key).and_return(key)
 
         repo_klass.instance_variable_set(:@default_expiration, default_expiration)
 
-        expect(driver).to receive(:set).with(key, 'myval', default_expiration)
+        expect(driver).to receive(:set).with(key, entity)
 
         repository.prime(args)
       end
@@ -200,6 +208,9 @@ describe Hitnmiss::Repository do
       key1 = double('key 1')
       key2 = double('key 2')
 
+      entity1 = Hitnmiss::Entity.new('myval', 22223)
+      entity2 = Hitnmiss::Entity.new('myval2', 4232)
+
       repo_klass = Class.new do
         include Hitnmiss::Repository
         self.driver :my_driver
@@ -209,10 +220,13 @@ describe Hitnmiss::Repository do
         def fetch_all(keyspace)
           [
             { args: ['key1'], entity: Hitnmiss::Entity.new('myval', 22223) },
-            { args: ['key2'], entity: Hitnmiss::Entity.new('myval2', 43564) }
+            { args: ['key2'], entity: Hitnmiss::Entity.new('myval2', 4232) }
           ]
         end
       end
+
+      allow(Hitnmiss::Entity).to receive(:new).with('myval', 22223).and_return(entity1)
+      allow(Hitnmiss::Entity).to receive(:new).with('myval2', 4232).and_return(entity2)
 
       allow(repo_klass).to receive(:name).and_return('isotest_prime_all_1')
 
@@ -224,8 +238,8 @@ describe Hitnmiss::Repository do
       allow(repository).to receive(:generate_key).with('key1').and_return(key1)
       allow(repository).to receive(:generate_key).with('key2').and_return(key2)
 
-      expect(driver).to receive(:set).with(key1, 'myval', 22223)
-      expect(driver).to receive(:set).with(key2, 'myval2', 43564)
+      expect(driver).to receive(:set).with(key1, entity1)
+      expect(driver).to receive(:set).with(key2, entity2)
 
       repository.prime_all
     end
