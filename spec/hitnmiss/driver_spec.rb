@@ -36,8 +36,7 @@ describe Hitnmiss::Driver do
     describe "#set" do
       it "raises error indicating not implemented" do
         expect { subject.set(double('key'),
-                             double('value'),
-                             double('expiration')) }.to \
+                             double('entity')) }.to \
         raise_error(Hitnmiss::Errors::NotImplemented)
       end
     end

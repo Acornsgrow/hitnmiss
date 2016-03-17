@@ -11,7 +11,7 @@ module Hitnmiss
     class Miss; end
 
     module Interface
-      def set(key, value, expiration_in_seconds)
+      def set(key, entity)
         raise Hitnmiss::Errors::NotImplemented
       end
 
