@@ -6,6 +6,7 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+* Added: `get_from_cache` private method to Repository
 * Changed: Repository to use new driver set interface
 * Changed: in-memory driver set, setnoexp to the new driver interface set method
 * Changed: `set` method of driver interface to take key and entity
