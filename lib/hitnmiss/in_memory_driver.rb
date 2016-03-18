@@ -13,11 +13,13 @@ module Hitnmiss
         @mutex.synchronize do
           @cache[key] = { 'value' => entity.value, 'expiration' => expiration }
           @cache[key]['fingerprint'] = entity.fingerprint if entity.fingerprint
+          @cache[key]['updated_at'] = internal_timestamp
         end
       else
         @mutex.synchronize do
           @cache[key] = { 'value' => entity.value }
           @cache[key]['fingerprint'] = entity.fingerprint if entity.fingerprint
+          @cache[key]['updated_at'] = internal_timestamp
         end
       end
     end
@@ -28,29 +30,16 @@ module Hitnmiss
         cached_entity = @cache[key].dup if @cache[key]
       end
 
-      if cached_entity
-        if cached_entity.has_key?('expiration')
-          if Time.now.utc.to_i > cached_entity['expiration']
-            return Hitnmiss::Driver::Miss.new
-          else
-            if cached_entity.has_key?('fingerprint')
-              return Hitnmiss::Driver::Hit.new(cached_entity['value'],
-                                               fingerprint: cached_entity['fingerprint'])
-            else
-              return Hitnmiss::Driver::Hit.new(cached_entity['value'])
-            end
-          end
-        else
-          if cached_entity.has_key?('fingerprint')
-            return Hitnmiss::Driver::Hit.new(cached_entity['value'],
-                                             fingerprint: cached_entity['fingerprint'])
-          else
-            return Hitnmiss::Driver::Hit.new(cached_entity['value'])
-          end
+      return Hitnmiss::Driver::Miss.new if cached_entity.nil?
+
+      if cached_entity.has_key?('expiration')
+        if Time.now.utc.to_i > cached_entity['expiration']
+          return Hitnmiss::Driver::Miss.new
         end
-      else
-        return Hitnmiss::Driver::Miss.new
       end
+
+      return Hitnmiss::Driver::Hit.new(cached_entity['value'],
+                                       build_hit_keyword_args(cached_entity))
     end
 
     def all(keyspace)
@@ -78,6 +67,23 @@ module Hitnmiss
     def match_keyspace?(key, keyspace)
       regex = Regexp.new("^#{keyspace}\\" + Repository::KeyGeneration::KEY_COMPONENT_SEPARATOR)
       return regex.match(key)
+    end
+
+    private
+
+    def internal_timestamp
+      Time.now.utc.iso8601
+    end
+
+    def build_hit_keyword_args(cached_entity)
+      options = {}
+      if cached_entity.has_key?('fingerprint')
+        options[:fingerprint] = cached_entity['fingerprint']
+      end
+      if cached_entity.has_key?('updated_at')
+        options[:updated_at] = Time.parse(cached_entity['updated_at'])
+      end
+      return **options
     end
   end
 end

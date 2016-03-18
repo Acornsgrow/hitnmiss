@@ -6,6 +6,7 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+* Added: `updated_at` support to the in-memory driver
 * Added: `fingerprint` support to the in-memory driver
 * Added: `get_from_cache` private method to Repository
 * Changed: Repository to use new driver set interface

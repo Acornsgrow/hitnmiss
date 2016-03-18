@@ -42,6 +42,17 @@ describe "Hitnmiss::InMemoryDriver" do
           expect(cache['some_key']['fingerprint']).to eq('foofingerprint')
         end
       end
+
+      it 'stores the updated_at timestamp in utc iso8601' do
+        driver = Hitnmiss::InMemoryDriver.new
+        entity = Hitnmiss::Entity.new('some_value', 1)
+        now = Time.utc(2016, 4, 15, 13, 0, 0)
+        Timecop.freeze(now) do
+          driver.set('some_key', entity)
+        end
+        cache = driver.instance_variable_get(:@cache)
+        expect(cache['some_key']['updated_at']).to eq('2016-04-15T13:00:00Z')
+      end
     end
 
     context 'when given entity does NOT have an expiration' do
@@ -65,73 +76,72 @@ describe "Hitnmiss::InMemoryDriver" do
           expect(cache['some_key']['fingerprint']).to eq('some-fingerprint')
         end
       end
+
+      it 'stores the updated_at timestamp in utc iso8601' do
+        driver = Hitnmiss::InMemoryDriver.new
+        entity = Hitnmiss::Entity.new('some_value')
+        now = Time.utc(2016, 4, 15, 13, 0, 0)
+        Timecop.freeze(now) do
+          driver.set('some_key', entity)
+        end
+        cache = driver.instance_variable_get(:@cache)
+        expect(cache['some_key']['updated_at']).to eq('2016-04-15T13:00:00Z')
+      end
     end
   end
 
   describe "#get" do
     context "when key matches something cached" do
-      context "when expiration exists" do
-        context "when we have passed the expiration" do
-          it "returns a Hitnmiss::Driver::Miss indicating a miss" do
-            driver = Hitnmiss::InMemoryDriver.new
-            cur_time = Time.now.utc
-            Timecop.freeze(cur_time) do
-              cache = { 'some_key' => { 'value' => 'foo', 'expiration' => (cur_time.to_i - 423423) } }
-              driver.instance_variable_set(:@cache, cache)
-              expect(driver.get('some_key')).to be_a(Hitnmiss::Driver::Miss)
-            end
-          end
-        end
-
-        context "when we have NOT passed the expiration" do
-          it "returns a Hitnmiss::Driver::Hit with the cached value" do
-            driver = Hitnmiss::InMemoryDriver.new
-            cur_time = Time.now.utc
-            Timecop.freeze(cur_time) do
-              cache = { 'some_key' => { 'value' => 'foo', 'expiration' => (cur_time.to_i + 234232) } }
-              driver.instance_variable_set(:@cache, cache)
-              hit = driver.get('some_key')
-              expect(hit).to be_a(Hitnmiss::Driver::Hit)
-              expect(hit.value).to eq('foo')
-            end
-          end
-
-          context 'when has a fingerprint' do
-            it 'returns a Hit with the cached value and fingerprint' do
-              driver = Hitnmiss::InMemoryDriver.new
-              cur_time = Time.now.utc
-              Timecop.freeze(cur_time) do
-                cache = { 'some_key' => { 'value' => 'foo', 'expiration' => (cur_time.to_i + 234232), 'fingerprint' => 'foobar' } }
-                driver.instance_variable_set(:@cache, cache)
-                hit = driver.get('some_key')
-                expect(hit).to be_a(Hitnmiss::Driver::Hit)
-                expect(hit.value).to eq('foo')
-                expect(hit.fingerprint).to eq('foobar')
-              end
-            end
+      context "when we have passed the expiration" do
+        it "returns a Hitnmiss::Driver::Miss indicating a miss" do
+          driver = Hitnmiss::InMemoryDriver.new
+          cur_time = Time.now.utc
+          Timecop.freeze(cur_time) do
+            cache = { 'some_key' => { 'value' => 'foo', 'expiration' => (cur_time.to_i - 423423) } }
+            driver.instance_variable_set(:@cache, cache)
+            expect(driver.get('some_key')).to be_a(Hitnmiss::Driver::Miss)
           end
         end
       end
 
-      context "when expiration does NOT exist" do
+      context "when we have NOT passed the expiration or no expiration was set" do
         it "returns a Hitnmiss::Driver::Hit with the cached value" do
           driver = Hitnmiss::InMemoryDriver.new
-          cache = { 'some_key' => { 'value' => 'foo' } }
-          driver.instance_variable_set(:@cache, cache)
-          hit = driver.get('some_key')
-          expect(hit).to be_a(Hitnmiss::Driver::Hit)
-          expect(hit.value).to eq('foo')
+          cur_time = Time.now.utc
+          Timecop.freeze(cur_time) do
+            cache = { 'some_key' => { 'value' => 'foo', 'expiration' => (cur_time.to_i + 234232) } }
+            driver.instance_variable_set(:@cache, cache)
+            hit = driver.get('some_key')
+            expect(hit).to be_a(Hitnmiss::Driver::Hit)
+            expect(hit.value).to eq('foo')
+          end
         end
 
         context 'when has a fingerprint' do
           it 'returns a Hit with the cached value and fingerprint' do
             driver = Hitnmiss::InMemoryDriver.new
-            cache = { 'some_key' => { 'value' => 'foo', 'fingerprint' => 'foobar' } }
-            driver.instance_variable_set(:@cache, cache)
+            cur_time = Time.now.utc
+            Timecop.freeze(cur_time) do
+              cache = { 'some_key' => { 'value' => 'foo', 'expiration' => (cur_time.to_i + 234232), 'fingerprint' => 'foobar' } }
+              driver.instance_variable_set(:@cache, cache)
+              hit = driver.get('some_key')
+              expect(hit).to be_a(Hitnmiss::Driver::Hit)
+              expect(hit.value).to eq('foo')
+              expect(hit.fingerprint).to eq('foobar')
+            end
+          end
+        end
+
+        context 'when has updated_at' do
+          it 'returns a Hit object with updated_at set to time object' do
+            driver = Hitnmiss::InMemoryDriver.new
+            entity = Hitnmiss::Entity.new('some_value')
+            now = Time.utc(2016, 4, 15, 13, 0, 0)
+            Timecop.freeze(now) do
+              driver.set('some_key', entity)
+            end
             hit = driver.get('some_key')
-            expect(hit).to be_a(Hitnmiss::Driver::Hit)
-            expect(hit.value).to eq('foo')
-            expect(hit.fingerprint).to eq('foobar')
+            expect(hit.updated_at).to eq(now)
           end
         end
       end
