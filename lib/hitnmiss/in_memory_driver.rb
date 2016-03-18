@@ -12,10 +12,12 @@ module Hitnmiss
         expiration = Time.now.utc.to_i + entity.expiration
         @mutex.synchronize do
           @cache[key] = { 'value' => entity.value, 'expiration' => expiration }
+          @cache[key]['fingerprint'] = entity.fingerprint if entity.fingerprint
         end
       else
         @mutex.synchronize do
           @cache[key] = { 'value' => entity.value }
+          @cache[key]['fingerprint'] = entity.fingerprint if entity.fingerprint
         end
       end
     end
@@ -27,10 +29,24 @@ module Hitnmiss
       end
 
       if cached_entity
-        if Time.now.utc.to_i > cached_entity['expiration']
-          return Hitnmiss::Driver::Miss.new 
+        if cached_entity.has_key?('expiration')
+          if Time.now.utc.to_i > cached_entity['expiration']
+            return Hitnmiss::Driver::Miss.new
+          else
+            if cached_entity.has_key?('fingerprint')
+              return Hitnmiss::Driver::Hit.new(cached_entity['value'],
+                                               fingerprint: cached_entity['fingerprint'])
+            else
+              return Hitnmiss::Driver::Hit.new(cached_entity['value'])
+            end
+          end
         else
-          return Hitnmiss::Driver::Hit.new(cached_entity['value'])
+          if cached_entity.has_key?('fingerprint')
+            return Hitnmiss::Driver::Hit.new(cached_entity['value'],
+                                             fingerprint: cached_entity['fingerprint'])
+          else
+            return Hitnmiss::Driver::Hit.new(cached_entity['value'])
+          end
         end
       else
         return Hitnmiss::Driver::Miss.new

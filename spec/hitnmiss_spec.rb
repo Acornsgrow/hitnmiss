@@ -206,4 +206,24 @@ describe Hitnmiss do
       expect(repository.all).to be_empty
     end
   end
+
+  describe 'setting and getting a fingerprint' do
+    it 'sets and gets the fingerprint' do
+      repo_klass = Class.new do
+        include Hitnmiss::Repository
+
+        private
+
+        def fetch(*args)
+          Hitnmiss::Entity.new('hello', 235, 'some-fingerprint')
+        end
+      end
+
+      repository = repo_klass.new
+      repository.prime
+      hit = repository.send(:get_from_cache)
+      expect(hit).to be_a(Hitnmiss::Driver::Hit)
+      expect(hit.fingerprint).to eq('some-fingerprint')
+    end
+  end
 end
