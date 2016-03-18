@@ -48,7 +48,7 @@ module Hitnmiss
       end
 
       def get(*args)
-        hit_or_miss = Hitnmiss.driver(self.class.driver).get(generate_key(*args))
+        hit_or_miss = get_from_cache(*args)
         if hit_or_miss.is_a?(Hitnmiss::Driver::Miss)
           return prime(*args)
         elsif hit_or_miss.is_a?(Hitnmiss::Driver::Hit)
@@ -65,6 +65,10 @@ module Hitnmiss
       end
 
       private
+
+      def get_from_cache(*args)
+        Hitnmiss.driver(self.class.driver).get(generate_key(*args))
+      end
 
       def enrich_entity_expiration(unenriched_entity)
         if unenriched_entity.expiration
