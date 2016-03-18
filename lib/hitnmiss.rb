@@ -1,6 +1,7 @@
 require "hitnmiss/version"
 require "hitnmiss/errors"
 require "hitnmiss/repository"
+require "hitnmiss/background_refresh_repository"
 require "hitnmiss/driver_registry"
 require "hitnmiss/entity"
 require "hitnmiss/driver"
