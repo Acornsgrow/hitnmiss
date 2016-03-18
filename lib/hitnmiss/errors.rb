@@ -4,6 +4,6 @@ module Hitnmiss
 
     class NotImplemented < Error; end
 
-    class UnregisterdDriver < Error; end
+    class UnregisteredDriver < Error; end
   end
 end

@@ -6,6 +6,7 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+* Changed: `UnregistrdDriver` to `UnregisteredDriver`
 * Added: `Hitnmiss::BackgroundRefreshRepository` to enable backround refresh
 * Added: `updated_at` support to the in-memory driver
 * Added: `fingerprint` support to the in-memory driver
