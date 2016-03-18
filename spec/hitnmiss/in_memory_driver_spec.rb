@@ -27,6 +27,21 @@ describe "Hitnmiss::InMemoryDriver" do
         expect(cache['some_key']['value']).to eq('some_value')
         expect(cache['some_key']['expiration']).to eq(now.to_i + 1)
       end
+
+      context 'when given entity has a fingerprint' do
+        it 'caches the given value with key, expiration, and fingerprint' do
+          driver = Hitnmiss::InMemoryDriver.new
+          entity = Hitnmiss::Entity.new('some_value', 1, 'foofingerprint')
+          now = Time.now.utc
+          Timecop.freeze(now) do
+            driver.set('some_key', entity)
+          end
+          cache = driver.instance_variable_get(:@cache)
+          expect(cache['some_key']['value']).to eq('some_value')
+          expect(cache['some_key']['expiration']).to eq(now.to_i + 1)
+          expect(cache['some_key']['fingerprint']).to eq('foofingerprint')
+        end
+      end
     end
 
     context 'when given entity does NOT have an expiration' do
@@ -37,6 +52,18 @@ describe "Hitnmiss::InMemoryDriver" do
         cache = driver.instance_variable_get(:@cache)
         expect(cache['some_key']['value']).to eq('some_value')
         expect(cache['some_key'].has_key?('expiration')).to eq(false)
+      end
+
+      context 'when given entity has a fingerprint' do
+        it 'caches the given value, using the given key and fingerprint' do
+          driver = Hitnmiss::InMemoryDriver.new
+          entity = Hitnmiss::Entity.new('some_value', nil, 'some-fingerprint')
+          driver.set('some_key', entity)
+          cache = driver.instance_variable_get(:@cache)
+          expect(cache['some_key']['value']).to eq('some_value')
+          expect(cache['some_key'].has_key?('expiration')).to eq(false)
+          expect(cache['some_key']['fingerprint']).to eq('some-fingerprint')
+        end
       end
     end
   end
@@ -68,6 +95,21 @@ describe "Hitnmiss::InMemoryDriver" do
               expect(hit.value).to eq('foo')
             end
           end
+
+          context 'when has a fingerprint' do
+            it 'returns a Hit with the cached value and fingerprint' do
+              driver = Hitnmiss::InMemoryDriver.new
+              cur_time = Time.now.utc
+              Timecop.freeze(cur_time) do
+                cache = { 'some_key' => { 'value' => 'foo', 'expiration' => (cur_time.to_i + 234232), 'fingerprint' => 'foobar' } }
+                driver.instance_variable_set(:@cache, cache)
+                hit = driver.get('some_key')
+                expect(hit).to be_a(Hitnmiss::Driver::Hit)
+                expect(hit.value).to eq('foo')
+                expect(hit.fingerprint).to eq('foobar')
+              end
+            end
+          end
         end
       end
 
@@ -79,6 +121,18 @@ describe "Hitnmiss::InMemoryDriver" do
           hit = driver.get('some_key')
           expect(hit).to be_a(Hitnmiss::Driver::Hit)
           expect(hit.value).to eq('foo')
+        end
+
+        context 'when has a fingerprint' do
+          it 'returns a Hit with the cached value and fingerprint' do
+            driver = Hitnmiss::InMemoryDriver.new
+            cache = { 'some_key' => { 'value' => 'foo', 'fingerprint' => 'foobar' } }
+            driver.instance_variable_set(:@cache, cache)
+            hit = driver.get('some_key')
+            expect(hit).to be_a(Hitnmiss::Driver::Hit)
+            expect(hit.value).to eq('foo')
+            expect(hit.fingerprint).to eq('foobar')
+          end
         end
       end
     end
