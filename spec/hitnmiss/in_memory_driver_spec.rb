@@ -42,6 +42,17 @@ describe "Hitnmiss::InMemoryDriver" do
           expect(cache['some_key']['fingerprint']).to eq('foofingerprint')
         end
       end
+
+      it 'stores the updated_at timestamp in utc iso8601' do
+        driver = Hitnmiss::InMemoryDriver.new
+        entity = Hitnmiss::Entity.new('some_value', 1)
+        now = Time.utc(2016, 4, 15, 13, 0, 0)
+        Timecop.freeze(now) do
+          driver.set('some_key', entity)
+        end
+        cache = driver.instance_variable_get(:@cache)
+        expect(cache['some_key']['updated_at']).to eq('2016-04-15T13:00:00Z')
+      end
     end
 
     context 'when given entity does NOT have an expiration' do
@@ -64,6 +75,17 @@ describe "Hitnmiss::InMemoryDriver" do
           expect(cache['some_key'].has_key?('expiration')).to eq(false)
           expect(cache['some_key']['fingerprint']).to eq('some-fingerprint')
         end
+      end
+
+      it 'stores the updated_at timestamp in utc iso8601' do
+        driver = Hitnmiss::InMemoryDriver.new
+        entity = Hitnmiss::Entity.new('some_value')
+        now = Time.utc(2016, 4, 15, 13, 0, 0)
+        Timecop.freeze(now) do
+          driver.set('some_key', entity)
+        end
+        cache = driver.instance_variable_get(:@cache)
+        expect(cache['some_key']['updated_at']).to eq('2016-04-15T13:00:00Z')
       end
     end
   end
@@ -98,12 +120,28 @@ describe "Hitnmiss::InMemoryDriver" do
         context 'when has a fingerprint' do
           it 'returns a Hit with the cached value and fingerprint' do
             driver = Hitnmiss::InMemoryDriver.new
-            cache = { 'some_key' => { 'value' => 'foo', 'fingerprint' => 'foobar' } }
-            driver.instance_variable_set(:@cache, cache)
+            cur_time = Time.now.utc
+            Timecop.freeze(cur_time) do
+              cache = { 'some_key' => { 'value' => 'foo', 'expiration' => (cur_time.to_i + 234232), 'fingerprint' => 'foobar' } }
+              driver.instance_variable_set(:@cache, cache)
+              hit = driver.get('some_key')
+              expect(hit).to be_a(Hitnmiss::Driver::Hit)
+              expect(hit.value).to eq('foo')
+              expect(hit.fingerprint).to eq('foobar')
+            end
+          end
+        end
+
+        context 'when has updated_at' do
+          it 'returns a Hit object with updated_at set to time object' do
+            driver = Hitnmiss::InMemoryDriver.new
+            entity = Hitnmiss::Entity.new('some_value')
+            now = Time.utc(2016, 4, 15, 13, 0, 0)
+            Timecop.freeze(now) do
+              driver.set('some_key', entity)
+            end
             hit = driver.get('some_key')
-            expect(hit).to be_a(Hitnmiss::Driver::Hit)
-            expect(hit.value).to eq('foo')
-            expect(hit.fingerprint).to eq('foobar')
+            expect(hit.updated_at).to eq(now)
           end
         end
       end
