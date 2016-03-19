@@ -14,12 +14,14 @@ module Hitnmiss
           @cache[key] = { 'value' => entity.value, 'expiration' => expiration }
           @cache[key]['fingerprint'] = entity.fingerprint if entity.fingerprint
           @cache[key]['updated_at'] = internal_timestamp
+          @cache[key]['last_modified'] = entity.last_modified if entity.last_modified
         end
       else
         @mutex.synchronize do
           @cache[key] = { 'value' => entity.value }
           @cache[key]['fingerprint'] = entity.fingerprint if entity.fingerprint
           @cache[key]['updated_at'] = internal_timestamp
+          @cache[key]['last_modified'] = entity.last_modified if entity.last_modified
         end
       end
     end
@@ -82,6 +84,9 @@ module Hitnmiss
       end
       if cached_entity.has_key?('updated_at')
         options[:updated_at] = Time.parse(cached_entity['updated_at'])
+      end
+      if cached_entity.has_key?('last_modified')
+        options[:last_modified] = cached_entity['last_modified']
       end
       return **options
     end

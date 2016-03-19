@@ -124,7 +124,7 @@ describe Hitnmiss::Repository do
         key = double('key')
         args = double('arguments')
 
-        entity = Hitnmiss::Entity.new('myval', 22223)
+        entity = Hitnmiss::Entity.new('myval', expiration: 22223)
 
         repo_klass = Class.new do
           include Hitnmiss::Repository
@@ -133,7 +133,7 @@ describe Hitnmiss::Repository do
           private
 
           def fetch(*args)
-            Hitnmiss::Entity.new('myval', 22223)
+            Hitnmiss::Entity.new('myval', expiration: 22223)
           end
         end
 
@@ -208,8 +208,8 @@ describe Hitnmiss::Repository do
       key1 = double('key 1')
       key2 = double('key 2')
 
-      entity1 = Hitnmiss::Entity.new('myval', 22223)
-      entity2 = Hitnmiss::Entity.new('myval2', 4232)
+      entity1 = Hitnmiss::Entity.new('myval', expiration: 22223)
+      entity2 = Hitnmiss::Entity.new('myval2', expiration: 4232)
 
       repo_klass = Class.new do
         include Hitnmiss::Repository
@@ -219,14 +219,14 @@ describe Hitnmiss::Repository do
 
         def fetch_all(keyspace)
           [
-            { args: ['key1'], entity: Hitnmiss::Entity.new('myval', 22223) },
-            { args: ['key2'], entity: Hitnmiss::Entity.new('myval2', 4232) }
+            { args: ['key1'], entity: Hitnmiss::Entity.new('myval', expiration: 22223) },
+            { args: ['key2'], entity: Hitnmiss::Entity.new('myval2', expiration: 4232) }
           ]
         end
       end
 
-      allow(Hitnmiss::Entity).to receive(:new).with('myval', 22223).and_return(entity1)
-      allow(Hitnmiss::Entity).to receive(:new).with('myval2', 4232).and_return(entity2)
+      allow(Hitnmiss::Entity).to receive(:new).with('myval', expiration: 22223).and_return(entity1)
+      allow(Hitnmiss::Entity).to receive(:new).with('myval2', expiration: 4232).and_return(entity2)
 
       allow(repo_klass).to receive(:name).and_return('isotest_prime_all_1')
 
@@ -253,8 +253,8 @@ describe Hitnmiss::Repository do
 
         def fetch_all(keyspace)
           [
-            { args: ['key1'], entity: Hitnmiss::Entity.new('myval', 22223) },
-            { args: ['key2'], entity: Hitnmiss::Entity.new('myval2', 43564) }
+            { args: ['key1'], entity: Hitnmiss::Entity.new('myval', expiration: 22223) },
+            { args: ['key2'], entity: Hitnmiss::Entity.new('myval2', expiration: 43564) }
           ]
         end
       end
