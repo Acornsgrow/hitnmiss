@@ -1,47 +1,26 @@
+require 'hitnmiss/repository/fetcher'
+require 'hitnmiss/repository/driver_management'
+require 'hitnmiss/repository/key_generation'
+
 module Hitnmiss
   module Repository
-    KEY_COMPONENT_SEPARATOR = '.'.freeze
-    KEY_COMPONENT_TYPE_SEPARATOR = ':'.freeze
     class UnsupportedDriverResponse < StandardError; end
 
     def self.included(mod)
+      mod.extend(DriverManagement)
+      mod.include(KeyGeneration)
+      mod.include(Fetcher)
       mod.extend(ClassMethods)
       mod.include(InstanceMethods)
-      mod.include(Fetcher)
-      mod.driver :in_memory
-    end
-
-    module Fetcher
-      private
-
-      def fetch(*args)
-        raise Hitnmiss::Errors::NotImplemented
-      end
-
-      def fetch_all(keyspace)
-        raise Hitnmiss::Errors::NotImplemented
-      end
     end
 
     module ClassMethods
-      def driver(driver_name=nil)
-        if driver_name
-          @driver_name = driver_name
-        else
-          @driver_name
-        end
-      end
-
       def default_expiration(expiration_in_seconds=nil)
         if expiration_in_seconds
           @default_expiration = expiration_in_seconds
         else
           @default_expiration 
         end
-      end
-
-      def keyspace
-        name
       end
     end
 
@@ -69,7 +48,7 @@ module Hitnmiss
       end
 
       def get(*args)
-        hit_or_miss = Hitnmiss.driver(self.class.driver).get(generate_key(*args))
+        hit_or_miss = get_from_cache(*args)
         if hit_or_miss.is_a?(Hitnmiss::Driver::Miss)
           return prime(*args)
         elsif hit_or_miss.is_a?(Hitnmiss::Driver::Hit)
@@ -87,22 +66,24 @@ module Hitnmiss
 
       private
 
-      def cache_entity(args, cacheable_entity)
-        if cacheable_entity.expiration
-          Hitnmiss.driver(self.class.driver).set(generate_key(*args), cacheable_entity.value,
-                     cacheable_entity.expiration)
+      def get_from_cache(*args)
+        Hitnmiss.driver(self.class.driver).get(generate_key(*args))
+      end
+
+      def enrich_entity_expiration(unenriched_entity)
+        if unenriched_entity.expiration
+          return unenriched_entity
         else
-          Hitnmiss.driver(self.class.driver).set(generate_key(*args), cacheable_entity.value,
-                     self.class.default_expiration)
+          return Hitnmiss::Entity.new(unenriched_entity.value,
+            expiration: self.class.default_expiration,
+            fingerprint: unenriched_entity.fingerprint,
+            last_modified: unenriched_entity.last_modified)
         end
       end
 
-      def generate_key(*args)
-        components = args.map do |arg|
-          "#{arg.class.name}#{KEY_COMPONENT_TYPE_SEPARATOR}#{arg}"
-        end
-        return "#{self.class.keyspace}#{KEY_COMPONENT_SEPARATOR}" \
-               "#{components.join(KEY_COMPONENT_SEPARATOR)}"
+      def cache_entity(args, cacheable_entity)
+        entity = enrich_entity_expiration(cacheable_entity)
+        Hitnmiss.driver(self.class.driver).set(generate_key(*args), entity)
       end
     end
   end

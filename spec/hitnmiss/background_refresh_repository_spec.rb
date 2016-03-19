@@ -1,11 +1,11 @@
 require 'spec_helper'
 
-describe Hitnmiss::Repository do
+RSpec.describe Hitnmiss::BackgroundRefreshRepository do
   describe '.driver' do
     context 'when given a driver identifier' do
       it 'sets driver to a registered driver' do
         repo_klass = Class.new do
-          include Hitnmiss::Repository
+          include Hitnmiss::BackgroundRefreshRepository
           driver :some_driver
         end
 
@@ -18,7 +18,7 @@ describe Hitnmiss::Repository do
       context 'when driver has been set' do
         it 'returns the driver identifier' do
           repo_klass = Class.new do
-            include Hitnmiss::Repository
+            include Hitnmiss::BackgroundRefreshRepository
             driver :some_driver
           end
 
@@ -30,7 +30,7 @@ describe Hitnmiss::Repository do
       context 'when driver has NOT been set' do
         it 'returns identifier for the default driver' do
           repo_klass = Class.new do
-            include Hitnmiss::Repository
+            include Hitnmiss::BackgroundRefreshRepository
           end
 
           driver_name = repo_klass.driver
@@ -40,53 +40,11 @@ describe Hitnmiss::Repository do
     end
   end
 
-  describe '.default_expiration' do
-    context 'when given an expiration' do
-      it 'set the default expiration for the cache repository' do
-        expiration = double('expiration')
-        repo_klass = Class.new do
-          include Hitnmiss::Repository
-
-          default_expiration expiration
-        end
-
-        actual_default_expiration = repo_klass.instance_variable_get(:@default_expiration)
-        expect(actual_default_expiration).to eq(expiration)
-      end
-    end
-
-    context 'when NOT given an expiration' do
-      context 'when default expiration has been set' do
-        it 'returns the expiration' do
-          expiration = double('expiration')
-          repo_klass = Class.new do
-            include Hitnmiss::Repository
-
-            default_expiration expiration
-          end
-
-          actual_default_expiration = repo_klass.default_expiration
-          expect(actual_default_expiration).to eq(expiration)
-        end
-      end
-      
-      context 'when default expiration has NOT been set' do
-        it 'returns nil' do
-          repo_klass = Class.new do
-            include Hitnmiss::Repository
-          end
-
-          actual_default_expiration = repo_klass.default_expiration
-          expect(actual_default_expiration).to eq(nil)
-        end
-      end
-    end
-  end
-
   describe '#fetch' do
     it 'raises error indicating not implemented' do
       repo_klass = Class.new do
-        include Hitnmiss::Repository
+        include Hitnmiss::BackgroundRefreshRepository
+        refresh_interval 60
       end
 
       expect { repo_klass.new.send(:fetch) }.to raise_error(Hitnmiss::Errors::NotImplemented)
@@ -96,7 +54,8 @@ describe Hitnmiss::Repository do
   describe '#fetch_all' do
     it 'raises error indicating not implemented' do
       repo_klass = Class.new do
-        include Hitnmiss::Repository
+        include Hitnmiss::BackgroundRefreshRepository
+        refresh_interval 60
       end
 
       keyspace = double('keyspace')
@@ -104,11 +63,53 @@ describe Hitnmiss::Repository do
     end
   end
 
+  describe '.refresh_interval' do
+    context 'when given a refresh interval' do
+      it 'set the refresh intervalfor the cache repository' do
+        interval = double('interval')
+        repo_klass = Class.new do
+          include Hitnmiss::BackgroundRefreshRepository
+          refresh_interval interval
+        end
+
+        actual_interval = repo_klass.instance_variable_get(:@refresh_interval)
+        expect(actual_interval).to eq(interval)
+      end
+    end
+
+    context 'when NOT given a refresh interval' do
+      context 'when refresh interval has previously been set' do
+        it 'returns the refresh interval' do
+          interval = double('interval')
+          repo_klass = Class.new do
+            include Hitnmiss::BackgroundRefreshRepository
+            refresh_interval interval
+          end
+
+          actual_interval = repo_klass.refresh_interval
+          expect(actual_interval).to eq(interval)
+        end
+      end
+
+      context 'when refresh interval has NOT been set' do
+        it 'returns nil' do
+          repo_klass = Class.new do
+            include Hitnmiss::BackgroundRefreshRepository
+          end
+
+          actual_interval = repo_klass.refresh_interval
+          expect(actual_interval).to eq(nil)
+        end
+      end
+    end
+  end
+
   describe '#prime' do
     it 'obtains the cacheable entity' do
       repo_klass = Class.new do
-        include Hitnmiss::Repository
+        include Hitnmiss::BackgroundRefreshRepository
         self.driver :my_driver
+        refresh_interval 60
       end
 
       args = double('arguments')
@@ -120,24 +121,25 @@ describe Hitnmiss::Repository do
     end
 
     context 'when cacheable entity has an expiration' do
-      it 'caches the value with the expiration' do
+      it 'caches the value without the expiration' do
         key = double('key')
         args = double('arguments')
 
-        entity = Hitnmiss::Entity.new('myval', expiration: 22223)
+        entity = Hitnmiss::Entity.new('myval')
 
         repo_klass = Class.new do
-          include Hitnmiss::Repository
+          include Hitnmiss::BackgroundRefreshRepository
           self.driver :my_driver
+          refresh_interval 60
 
           private
 
           def fetch(*args)
-            Hitnmiss::Entity.new('myval', expiration: 22223)
+            Hitnmiss::Entity.new('myval')
           end
         end
 
-        allow(Hitnmiss::Entity).to receive(:new).and_return(entity)
+        allow(Hitnmiss::Entity).to receive(:new).with('myval').and_return(entity)
 
         driver = double('cache driver')
         Hitnmiss.register_driver(:my_driver, driver)
@@ -153,17 +155,16 @@ describe Hitnmiss::Repository do
     end
 
     context 'when cacheable entity does not have an expiration' do
-      it 'caches the value with the default expiration' do
+      it 'caches the value without an expiration' do
         key = double('key')
         driver = double('cache driver')
         args = double('arguments')
-        default_expiration = double('default expiration')
-
         entity = Hitnmiss::Entity.new('myval')
 
         repo_klass = Class.new do
-          include Hitnmiss::Repository
+          include Hitnmiss::BackgroundRefreshRepository
           self.driver :my_driver
+          refresh_interval 60
 
           private
 
@@ -173,13 +174,11 @@ describe Hitnmiss::Repository do
         end
         Hitnmiss.register_driver(:my_driver, driver)
 
-        allow(Hitnmiss::Entity).to receive(:new).and_return(entity)
+        allow(Hitnmiss::Entity).to receive(:new).with('myval').and_return(entity)
 
         repository = repo_klass.new
 
         allow(repository).to receive(:generate_key).and_return(key)
-
-        repo_klass.instance_variable_set(:@default_expiration, default_expiration)
 
         expect(driver).to receive(:set).with(key, entity)
 
@@ -189,10 +188,11 @@ describe Hitnmiss::Repository do
 
     it 'return the cacheable entity value' do
       repo_klass = Class.new do
-        include Hitnmiss::Repository
+        include Hitnmiss::BackgroundRefreshRepository
+        refresh_interval 60
       end
 
-      entity = double(value: 'foovalue', expiration: 212).as_null_object
+      entity = double(value: 'foovalue').as_null_object
       args = double('arguments')
 
       repository = repo_klass.new
@@ -207,28 +207,27 @@ describe Hitnmiss::Repository do
     it 'caches cacheable entities' do
       key1 = double('key 1')
       key2 = double('key 2')
-
-      entity1 = Hitnmiss::Entity.new('myval', expiration: 22223)
-      entity2 = Hitnmiss::Entity.new('myval2', expiration: 4232)
+      entity1 = Hitnmiss::Entity.new('myval')
+      entity2 = Hitnmiss::Entity.new('myval2')
 
       repo_klass = Class.new do
-        include Hitnmiss::Repository
+        include Hitnmiss::BackgroundRefreshRepository
         self.driver :my_driver
+        refresh_interval 60
 
         private
 
         def fetch_all(keyspace)
           [
-            { args: ['key1'], entity: Hitnmiss::Entity.new('myval', expiration: 22223) },
-            { args: ['key2'], entity: Hitnmiss::Entity.new('myval2', expiration: 4232) }
+            { args: ['key1'], entity: Hitnmiss::Entity.new('myval') },
+            { args: ['key2'], entity: Hitnmiss::Entity.new('myval2') }
           ]
         end
       end
 
-      allow(Hitnmiss::Entity).to receive(:new).with('myval', expiration: 22223).and_return(entity1)
-      allow(Hitnmiss::Entity).to receive(:new).with('myval2', expiration: 4232).and_return(entity2)
-
       allow(repo_klass).to receive(:name).and_return('isotest_prime_all_1')
+      allow(Hitnmiss::Entity).to receive(:new).with('myval').and_return(entity1)
+      allow(Hitnmiss::Entity).to receive(:new).with('myval2').and_return(entity2)
 
       driver = double('cache driver')
       Hitnmiss.register_driver(:my_driver, driver)
@@ -246,15 +245,16 @@ describe Hitnmiss::Repository do
 
     it 'returns the values of cached entities' do
       repo_klass = Class.new do
-        include Hitnmiss::Repository
+        include Hitnmiss::BackgroundRefreshRepository
         self.driver :my_driver
+        refresh_interval 60
 
         private
 
         def fetch_all(keyspace)
           [
-            { args: ['key1'], entity: Hitnmiss::Entity.new('myval', expiration: 22223) },
-            { args: ['key2'], entity: Hitnmiss::Entity.new('myval2', expiration: 43564) }
+            { args: ['key1'], entity: Hitnmiss::Entity.new('myval') },
+            { args: ['key2'], entity: Hitnmiss::Entity.new('myval2') }
           ]
         end
       end
@@ -276,8 +276,9 @@ describe Hitnmiss::Repository do
   describe '#get' do
     it 'generates the cache key' do
       repo_klass = Class.new do
-        include Hitnmiss::Repository
+        include Hitnmiss::BackgroundRefreshRepository
         self.driver :my_driver
+        refresh_interval 60
       end
 
       hit = Hitnmiss::Driver::Hit.new('somevalue')
@@ -289,10 +290,11 @@ describe Hitnmiss::Repository do
       repository.get('auaeuaoeua')
     end
 
-    it 'attempts to obtained the cached value' do
+    it 'attempts to obtain the cached value' do
       repo_klass = Class.new do
-        include Hitnmiss::Repository
+        include Hitnmiss::BackgroundRefreshRepository
         driver :my_driver
+        refresh_interval 60
       end
 
       hit = Hitnmiss::Driver::Hit.new('somevalue')
@@ -312,8 +314,9 @@ describe Hitnmiss::Repository do
     context 'when driver responds with a hit' do
       it 'returns the already cached value' do
         repo_klass = Class.new do
-          include Hitnmiss::Repository
+          include Hitnmiss::BackgroundRefreshRepository
           driver :my_driver
+          refresh_interval 60
         end
 
         hit = Hitnmiss::Driver::Hit.new('somevalue')
@@ -332,8 +335,9 @@ describe Hitnmiss::Repository do
     context 'when driver responds with a miss' do
       it 'primes the cache' do
         repo_klass = Class.new do
-          include Hitnmiss::Repository
+          include Hitnmiss::BackgroundRefreshRepository
           driver :my_driver
+          refresh_interval 60
         end
 
         miss = Hitnmiss::Driver::Miss.new
@@ -351,8 +355,9 @@ describe Hitnmiss::Repository do
 
       it 'returns the newly cached value' do
         repo_klass = Class.new do
-          include Hitnmiss::Repository
+          include Hitnmiss::BackgroundRefreshRepository
           driver :my_driver
+          refresh_interval 60
         end
 
         miss = Hitnmiss::Driver::Miss.new
@@ -372,8 +377,9 @@ describe Hitnmiss::Repository do
     context 'when driver responds with neither a hit or miss' do
       it 'raises an unsupported driver response exception' do
         repo_klass = Class.new do
-          include Hitnmiss::Repository
+          include Hitnmiss::BackgroundRefreshRepository
           driver :my_driver
+          refresh_interval 60
         end
 
         driver = double('cache driver')
@@ -393,8 +399,9 @@ describe Hitnmiss::Repository do
   describe '#delete' do
     it 'generates the cache key' do
       repo_klass = Class.new do
-        include Hitnmiss::Repository
+        include Hitnmiss::BackgroundRefreshRepository
         self.driver :my_driver
+        refresh_interval 60
       end
 
       driver = double('cache driver', delete: nil)
@@ -409,8 +416,9 @@ describe Hitnmiss::Repository do
 
     it 'deletes the cached value' do
       repo_klass = Class.new do
-        include Hitnmiss::Repository
+        include Hitnmiss::BackgroundRefreshRepository
         driver :my_driver
+        refresh_interval 60
       end
 
       driver = double('cache driver')
@@ -430,8 +438,9 @@ describe Hitnmiss::Repository do
   describe '#all' do
     it 'returns all values for the keyspace' do
       repo_klass = Class.new do
-        include Hitnmiss::Repository
+        include Hitnmiss::BackgroundRefreshRepository
         self.driver :my_driver
+        refresh_interval 60
       end
 
       entities = double('collection of cached values')
@@ -448,8 +457,9 @@ describe Hitnmiss::Repository do
   describe '#clear' do
     it 'clears all the values' do
       repo_klass = Class.new do
-        include Hitnmiss::Repository
+        include Hitnmiss::BackgroundRefreshRepository
         driver :my_driver
+        refresh_interval 60
       end
 
       driver = double('cache driver')
@@ -460,6 +470,91 @@ describe Hitnmiss::Repository do
       expect(driver).to receive(:clear)
 
       repository.clear
+    end
+  end
+
+  describe '#new' do
+    context 'when refresh interval previously set' do
+      it 'constructs an instance of the repository' do
+        repo_klass = Class.new do
+          include Hitnmiss::BackgroundRefreshRepository
+          refresh_interval 60
+        end
+
+        repository = repo_klass.new
+        expect(repository).to be_a(repo_klass)
+      end
+    end
+
+    context 'when refresh interval NOT previously set' do
+      it 'raises an exception notify it is required' do
+        repo_klass = Class.new do
+          include Hitnmiss::BackgroundRefreshRepository
+        end
+
+        expect { repo_klass.new }.to \
+        raise_error(Hitnmiss::BackgroundRefreshRepository::RefreshIntervalRequired)
+      end
+    end
+  end
+
+  describe '#stale?' do
+    it 'returns true' do
+      repo_klass = Class.new do
+        include Hitnmiss::BackgroundRefreshRepository
+        refresh_interval 60
+      end
+
+      repository = repo_klass.new
+
+      expect(repository.stale?('foo')).to eq(true)
+    end
+  end
+
+  describe '#refresh' do
+    it 'checks if the cache is stale?' do
+      repo_klass = Class.new do
+        include Hitnmiss::BackgroundRefreshRepository
+        refresh_interval 60
+      end
+
+      repository = repo_klass.new
+
+      args = double('args')
+      expect(repository).to receive(:stale?).with(args)
+      repository.refresh(args)
+    end
+
+    context 'when cache is stale' do
+      it 'primes the cache' do
+        repo_klass = Class.new do
+          include Hitnmiss::BackgroundRefreshRepository
+          refresh_interval 60
+        end
+
+        repository = repo_klass.new
+        allow(repository).to receive(:stale?).and_return(true)
+
+        args = double('args')
+        expect(repository).to receive(:prime).with(args)
+        repository.refresh(args)
+      end
+    end
+
+    context 'when cache is NOT stale' do
+      it 'does NOT prime the cache' do
+        repo_klass = Class.new do
+          include Hitnmiss::BackgroundRefreshRepository
+          refresh_interval 60
+        end
+
+        repository = repo_klass.new
+        allow(repository).to receive(:stale?).and_return(false)
+
+        args = double('args')
+        expect(repository).not_to receive(:prime)
+        repository.refresh(args)
+      end
     end
   end
 end

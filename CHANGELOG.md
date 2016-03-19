@@ -6,6 +6,25 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+* Changed: Repository and BackgroundRefreshRepository to use new Entity
+* Changed: in-memory driver to support `last_modified`
+* Changed: `Hitnmiss::Entity` to use keyword args
+* Added: `last_modified` to `Hitnmiss::Entity`
+* Added: `last_modified` to `Hitnmiss::Driver::Hit`
+* Changed: `UnregistrdDriver` to `UnregisteredDriver`
+* Added: `Hitnmiss::BackgroundRefreshRepository` to enable backround refresh
+* Added: `updated_at` support to the in-memory driver
+* Added: `fingerprint` support to the in-memory driver
+* Added: `get_from_cache` private method to Repository
+* Changed: Repository to use new driver set interface
+* Changed: in-memory driver set, setnoexp to the new driver interface set method
+* Changed: `set` method of driver interface to take key and entity
+* Removed: `setnoexp` method from driver interface
+* Added: `fingerprint` to `Hitnmiss::Entity`
+* Added: `fingerprint` and `updated_at` attributes to `Hitnmiss::Driver::Hit`
+* Added: `setnoexp` method to the in-memory driver
+* Added: `setnoexp` method to driver interface
+
 #### v1.0.0
 
 * Changed version to 1.0 since the api is stable
