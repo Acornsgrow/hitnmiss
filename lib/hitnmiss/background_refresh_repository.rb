@@ -120,7 +120,8 @@ module Hitnmiss
       def strip_expiration(unstripped_entity)
         if unstripped_entity.expiration
           return Hitnmiss::Entity.new(unstripped_entity.value,
-                                      nil, unstripped_entity.fingerprint)
+            expiration: nil, fingerprint: unstripped_entity.fingerprint,
+            last_modified: unstripped_entity.last_modified)
         else
           return unstripped_entity
         end

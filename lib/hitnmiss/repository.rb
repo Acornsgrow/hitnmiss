@@ -75,8 +75,9 @@ module Hitnmiss
           return unenriched_entity
         else
           return Hitnmiss::Entity.new(unenriched_entity.value,
-                                      self.class.default_expiration,
-                                      unenriched_entity.fingerprint)
+            expiration: self.class.default_expiration,
+            fingerprint: unenriched_entity.fingerprint,
+            last_modified: unenriched_entity.last_modified)
         end
       end
 

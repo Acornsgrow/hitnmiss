@@ -6,6 +6,11 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+* Changed: Repository and BackgroundRefreshRepository to use new Entity
+* Changed: in-memory driver to support `last_modified`
+* Changed: `Hitnmiss::Entity` to use keyword args
+* Added: `last_modified` to `Hitnmiss::Entity`
+* Added: `last_modified` to `Hitnmiss::Driver::Hit`
 * Changed: `UnregistrdDriver` to `UnregisteredDriver`
 * Added: `Hitnmiss::BackgroundRefreshRepository` to enable backround refresh
 * Added: `updated_at` support to the in-memory driver
