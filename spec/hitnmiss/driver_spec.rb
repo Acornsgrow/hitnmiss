@@ -50,7 +50,7 @@ describe Hitnmiss::Driver do
       end
 
       context 'when constructed without a fingerprint' do
-        it 'returns the ril' do
+        it 'returns the nil' do
           value = double('value')
           hit = Hitnmiss::Driver::Hit.new(value)
           expect(hit.fingerprint).to be_nil
@@ -69,7 +69,7 @@ describe Hitnmiss::Driver do
       end
 
       context 'when constructed without a last_modified' do
-        it 'returns the ril' do
+        it 'returns the nil' do
           value = double('value')
           hit = Hitnmiss::Driver::Hit.new(value)
           expect(hit.last_modified).to be_nil
