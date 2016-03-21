@@ -1,3 +1,5 @@
+require 'hitnmiss/repository/fetcher'
+
 module Hitnmiss
   module Repository
     KEY_COMPONENT_SEPARATOR = '.'.freeze
@@ -5,22 +7,10 @@ module Hitnmiss
     class UnsupportedDriverResponse < StandardError; end
 
     def self.included(mod)
+      mod.include(Fetcher)
       mod.extend(ClassMethods)
       mod.include(InstanceMethods)
-      mod.include(Fetcher)
       mod.driver :in_memory
-    end
-
-    module Fetcher
-      private
-
-      def fetch(*args)
-        raise Hitnmiss::Errors::NotImplemented
-      end
-
-      def fetch_all(keyspace)
-        raise Hitnmiss::Errors::NotImplemented
-      end
     end
 
     module ClassMethods
