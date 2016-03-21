@@ -47,7 +47,7 @@ learn how to use them.
 ### Standard Repository
 
 The standard repository module, `Hitnmiss::Repository`, fits the most common
-cacheing use case, the "Expiration Model". The "Expiration Model" is a cacheing
+caching use case, the "Expiration Model". The "Expiration Model" is a caching
 model where a value gets cached with an associated expiration and when that
 expiration is reached that value is no longer cached. The following is an
 example of creating a `MostRecentPrice` cache repository for the "Expiration
