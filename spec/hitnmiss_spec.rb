@@ -34,7 +34,7 @@ describe Hitnmiss do
         private
 
         def fetch(*args)
-          Hitnmiss::Entity.new('foo', 235)
+          Hitnmiss::Entity.new('foo', expiration: 235)
         end
       end
 
@@ -52,7 +52,7 @@ describe Hitnmiss do
         private
 
         def fetch(*args)
-          Hitnmiss::Entity.new('foo', 235)
+          Hitnmiss::Entity.new('foo', expiration: 235)
         end
       end
 
@@ -78,7 +78,7 @@ describe Hitnmiss do
         private
 
         def fetch(*args)
-          Hitnmiss::Entity.new('foo', 235)
+          Hitnmiss::Entity.new('foo', expiration: 235)
         end
       end
 
@@ -96,7 +96,7 @@ describe Hitnmiss do
         private
 
         def fetch(*args)
-          Hitnmiss::Entity.new('foo', 235)
+          Hitnmiss::Entity.new('foo', expiration: 235)
         end
       end
 
@@ -118,8 +118,8 @@ describe Hitnmiss do
 
         def fetch_all(keyspace)
           [
-            { args: ['key1'], entity: Hitnmiss::Entity.new('myval', 22223) },
-            { args: ['key2'], entity: Hitnmiss::Entity.new('myval2', 43564) }
+            { args: ['key1'], entity: Hitnmiss::Entity.new('myval', expiration: 22223) },
+            { args: ['key2'], entity: Hitnmiss::Entity.new('myval2', expiration: 43564) }
           ]
         end
       end
@@ -141,9 +141,9 @@ describe Hitnmiss do
 
         def fetch(*args)
           if args.first && args.first == 'hi'
-            Hitnmiss::Entity.new('hello', 235)
+            Hitnmiss::Entity.new('hello', expiration: 235)
           else
-            Hitnmiss::Entity.new('goodbye', 235)
+            Hitnmiss::Entity.new('goodbye', expiration: 235)
           end
         end
       end
@@ -166,7 +166,7 @@ describe Hitnmiss do
         private
 
         def fetch(*args)
-          Hitnmiss::Entity.new('foo', 235)
+          Hitnmiss::Entity.new('foo', expiration: 235)
         end
       end
 
@@ -189,9 +189,9 @@ describe Hitnmiss do
 
         def fetch(*args)
           if args.first && args.first == 'hi'
-            Hitnmiss::Entity.new('hello', 235)
+            Hitnmiss::Entity.new('hello', expiration: 235)
           else
-            Hitnmiss::Entity.new('goodbye', 235)
+            Hitnmiss::Entity.new('goodbye', expiration: 235)
           end
         end
       end
@@ -204,6 +204,26 @@ describe Hitnmiss do
       repository.clear
 
       expect(repository.all).to be_empty
+    end
+  end
+
+  describe 'setting and getting a fingerprint' do
+    it 'sets and gets the fingerprint' do
+      repo_klass = Class.new do
+        include Hitnmiss::Repository
+
+        private
+
+        def fetch(*args)
+          Hitnmiss::Entity.new('hello', expiration: 235, fingerprint: 'some-fingerprint')
+        end
+      end
+
+      repository = repo_klass.new
+      repository.prime
+      hit = repository.send(:get_from_cache)
+      expect(hit).to be_a(Hitnmiss::Driver::Hit)
+      expect(hit.fingerprint).to eq('some-fingerprint')
     end
   end
 end

@@ -48,7 +48,7 @@ module Hitnmiss
       end
 
       def get(*args)
-        hit_or_miss = Hitnmiss.driver(self.class.driver).get(generate_key(*args))
+        hit_or_miss = get_from_cache(*args)
         if hit_or_miss.is_a?(Hitnmiss::Driver::Miss)
           return prime(*args)
         elsif hit_or_miss.is_a?(Hitnmiss::Driver::Hit)
@@ -66,14 +66,24 @@ module Hitnmiss
 
       private
 
-      def cache_entity(args, cacheable_entity)
-        if cacheable_entity.expiration
-          Hitnmiss.driver(self.class.driver).set(generate_key(*args), cacheable_entity.value,
-                     cacheable_entity.expiration)
+      def get_from_cache(*args)
+        Hitnmiss.driver(self.class.driver).get(generate_key(*args))
+      end
+
+      def enrich_entity_expiration(unenriched_entity)
+        if unenriched_entity.expiration
+          return unenriched_entity
         else
-          Hitnmiss.driver(self.class.driver).set(generate_key(*args), cacheable_entity.value,
-                     self.class.default_expiration)
+          return Hitnmiss::Entity.new(unenriched_entity.value,
+                                      expiration: self.class.default_expiration,
+                                      fingerprint: unenriched_entity.fingerprint,
+                                      last_modified: unenriched_entity.last_modified)
         end
+      end
+
+      def cache_entity(args, cacheable_entity)
+        entity = enrich_entity_expiration(cacheable_entity)
+        Hitnmiss.driver(self.class.driver).set(generate_key(*args), entity)
       end
     end
   end
