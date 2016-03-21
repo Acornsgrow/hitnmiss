@@ -45,7 +45,7 @@ describe "Hitnmiss::InMemoryDriver" do
       end
 
       context 'when given entity has a last_modified' do
-        it 'caches the given value with key, expiraiton, and last_modified' do
+        it 'caches the given value with key, expiration, and last_modified' do
           driver = Hitnmiss::InMemoryDriver.new
           entity = Hitnmiss::Entity.new('some_value', expiration: 1,
                                         fingerprint: 'foofingerprint',
@@ -97,7 +97,7 @@ describe "Hitnmiss::InMemoryDriver" do
       end
 
       context 'when given entity has a last_modified' do
-        it 'caches the given value with key, expiraiton, and last_modified' do
+        it 'caches the given value with key, expiration, and last_modified' do
           driver = Hitnmiss::InMemoryDriver.new
           entity = Hitnmiss::Entity.new('some_value',
                                         fingerprint: 'foofingerprint',

@@ -20,7 +20,7 @@ describe Hitnmiss::Driver do
       end
     end
 
-    describe '#update_at' do
+    describe '#updated_at' do
       context 'when constructed with an updated_at' do
         it 'returns the timestamp it was last updated' do
           value = double('value')

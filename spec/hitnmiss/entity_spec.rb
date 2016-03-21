@@ -52,7 +52,7 @@ describe Hitnmiss::Entity do
     end
 
     context 'when given a value and last_modified' do
-      it 'constructs an intsance of Hitnmiss::Entity' do
+      it 'constructs an instance of Hitnmiss::Entity' do
         value = double('value')
         last_modified = double('last_modified')
         entity = Hitnmiss::Entity.new(value, last_modified: last_modified)
