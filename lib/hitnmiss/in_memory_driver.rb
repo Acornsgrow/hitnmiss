@@ -35,7 +35,7 @@ module Hitnmiss
       return Hitnmiss::Driver::Miss.new if cached_entity.nil?
 
       if cached_entity.has_key?('expiration')
-        if Time.now.to_i > cached_entity['expiration']
+        if Time.now.to_i >= cached_entity['expiration']
           return Hitnmiss::Driver::Miss.new
         end
       end
