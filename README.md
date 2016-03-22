@@ -113,7 +113,7 @@ This causes the background refresh process to prime the cache every
 If you want your cache implementation to be smarter and say validate a
 fingerprint or last modified value against the source, you can do it simply by
 overwriting the `stale?(*args)` method with your own staleness checking logic.
-The following is an example this.
+The following is an example of this.
 
 ```ruby
 class MostRecentPrice
@@ -283,9 +283,9 @@ end
 #### Set Cache Source based Last Modified
 
 In some cases you might want to set the `last_modified` value for a cached
-value. Do this provides more felxibility to `Hitnmiss` when trying to determine
-staleness of a cached item. A common example of this would be if you are
-fetching somthing over HTTP from a remote server and it includes the
+value. Doing this provides more felxibility to `Hitnmiss` when trying to
+determine staleness of a cached item. A common example of this would be if you
+are fetching somthing over HTTP from a remote server and it includes the
 `Last-Modified` entity header in the response. If you took the value of the
 `Last-Modified` header and you set it in the `Hitnmiss::Entity` it can be used
 later on by `Hitnmiss` to aid in identifying staleness. Once you have obtained
