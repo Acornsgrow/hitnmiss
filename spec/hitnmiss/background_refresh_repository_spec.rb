@@ -1,68 +1,6 @@
 require 'spec_helper'
 
 RSpec.describe Hitnmiss::BackgroundRefreshRepository do
-  describe '.driver' do
-    context 'when given a driver identifier' do
-      it 'sets driver to a registered driver' do
-        repo_klass = Class.new do
-          include Hitnmiss::BackgroundRefreshRepository
-          driver :some_driver
-        end
-
-        driver_name = repo_klass.instance_variable_get(:@driver_name)
-        expect(driver_name).to eq(:some_driver)
-      end
-    end
-
-    context 'when NOT given a driver identifier' do
-      context 'when driver has been set' do
-        it 'returns the driver identifier' do
-          repo_klass = Class.new do
-            include Hitnmiss::BackgroundRefreshRepository
-            driver :some_driver
-          end
-
-          driver_name = repo_klass.driver
-          expect(driver_name).to eq(:some_driver)
-        end
-      end
-
-      context 'when driver has NOT been set' do
-        it 'returns identifier for the default driver' do
-          repo_klass = Class.new do
-            include Hitnmiss::BackgroundRefreshRepository
-          end
-
-          driver_name = repo_klass.driver
-          expect(driver_name).to eq(:in_memory)
-        end
-      end
-    end
-  end
-
-  describe '#fetch' do
-    it 'raises error indicating not implemented' do
-      repo_klass = Class.new do
-        include Hitnmiss::BackgroundRefreshRepository
-        refresh_interval 60
-      end
-
-      expect { repo_klass.new.send(:fetch) }.to raise_error(Hitnmiss::Errors::NotImplemented)
-    end
-  end
-
-  describe '#fetch_all' do
-    it 'raises error indicating not implemented' do
-      repo_klass = Class.new do
-        include Hitnmiss::BackgroundRefreshRepository
-        refresh_interval 60
-      end
-
-      keyspace = double('keyspace')
-      expect { repo_klass.new.send(:fetch_all, keyspace) }.to raise_error(Hitnmiss::Errors::NotImplemented)
-    end
-  end
-
   describe '.refresh_interval' do
     context 'when given a refresh interval' do
       it 'set the refresh interval for the cache repository' do
@@ -390,8 +328,9 @@ RSpec.describe Hitnmiss::BackgroundRefreshRepository do
         allow(repository).to receive(:generate_key).and_return(key)
         allow(driver).to receive(:get).with(key).and_return(nil)
 
-        expect { repository.get('aoeuaoeuao') }.to raise_error(Hitnmiss::Repository::UnsupportedDriverResponse,
-          "Driver ':my_driver' did not return an object of the support types (Hitnmiss::Driver::Hit, Hitnmiss::Driver::Miss)")
+        expect { repository.get('aoeuaoeuao') }.to \
+          raise_error(Hitnmiss::Repository::CacheManagement::UnsupportedDriverResponse,
+            "Driver ':my_driver' did not return an object of the support types (Hitnmiss::Driver::Hit, Hitnmiss::Driver::Miss)")
       end
     end
   end
