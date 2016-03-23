@@ -38,10 +38,17 @@ module Hitnmiss
         end
       end
 
-      def background_refresh(*args)
+      def background_refresh(*args, swallow_exceptions: false)
         @refresh_thread = Thread.new(self, args) do |repository, args|
           while(true) do
-            refresh(*args)
+            if swallow_exceptions
+              begin
+                refresh(*args)
+              rescue
+              end
+            else
+              refresh(*args)
+            end
             sleep repository.class.refresh_interval
           end
         end
