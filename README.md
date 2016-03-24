@@ -49,9 +49,10 @@ learn how to use them.
 The standard repository module, `Hitnmiss::Repository`, fits the most common
 caching use case, the "Expiration Model". The "Expiration Model" is a caching
 model where a value gets cached with an associated expiration and when that
-expiration is reached that value is no longer cached. The following is an
-example of creating a `MostRecentPrice` cache repository for the "Expiration
-Model".
+expiration is reached that value is no longer cached. This affects the app
+behavior by having it pay the caching cost when it tries to get a value and it
+has expired. The following is an example of creating a `MostRecentPrice` cache
+repository for the "Expiration Model".
 
 ```ruby
 class MostRecentPrice
@@ -74,7 +75,10 @@ Sometimes you don't have an expiration value and don't want cached values to
 disappear. In these scenarios you want something to update the cache for you
 based on some defined interval. When you use the
 `Hitnmiss::BackgroundRefreshRepository` module and set the `refresh_interval`
-as seen below, it prepares your repository to handle this scenario.
+as seen below, it prepares your repository to handle this scenario. This changes
+the behavior where the app never experiences the caching cost as it is
+continually managed for the app in the background based on the
+`refresh_interval`.
 
 ```ruby
 class MostRecentPrice
@@ -86,7 +90,15 @@ end
 
 Once you have defined your Background Refresh Repository in order to get the
 background process to update your cache you have to kick it off using the
-`background_refresh(*args)` method as seen in the example below.
+`background_refresh(*args, swallow_exceptions: [])` method as seen in the
+example below. The optional key word argument, `swallow_exceptions` defaults to
+`[]`. If enabled it will prevent the specified exceptions, raised in the
+`fetch(*args)` or `stale?(*args)` methods you defined, from killing the
+background thread, and prevent the exceptions from making their way up to the
+application. This is useful in scenarios where you want it to absorb say timeout
+exceptions, etc. and continue trucking along. **Note:** Any other exceptions not
+covered by the exceptions listed in the `swallow_exceptions` array will still be
+raised up into the application.
 
 ```ruby
 repository = MostRecentPrice.new
