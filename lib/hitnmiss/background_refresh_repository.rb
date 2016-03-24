@@ -32,23 +32,25 @@ module Hitnmiss
         true
       end
 
-      def refresh(*args)
-        if stale?(*args)
-          prime(*args)
+      def refresh(*args, swallow_exceptions: [])
+        if swallow_exceptions.empty?
+          if stale?(*args)
+            prime(*args)
+          end
+        else
+          begin
+            if stale?(*args)
+              prime(*args)
+            end
+          rescue *swallow_exceptions
+          end
         end
       end
 
       def background_refresh(*args, swallow_exceptions: [])
         @refresh_thread = Thread.new(self, args) do |repository, args|
           while(true) do
-            if swallow_exceptions.empty?
-              refresh(*args)
-            else
-              begin
-                refresh(*args)
-              rescue *swallow_exceptions
-              end
-            end
+            refresh(*args, swallow_exceptions: swallow_exceptions)
             sleep repository.class.refresh_interval
           end
         end

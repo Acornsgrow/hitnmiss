@@ -495,5 +495,52 @@ RSpec.describe Hitnmiss::BackgroundRefreshRepository do
         repository.refresh(args)
       end
     end
+
+    context 'when swallow_exceptions is not set' do
+      it 'raises exceptions' do
+        repo_klass = Class.new do
+          include Hitnmiss::BackgroundRefreshRepository
+          refresh_interval 60
+
+          def stale?(*args)
+            raise TypeError, 'test type error'
+          end
+        end
+
+        repository = repo_klass.new
+        args = double('args')
+        expect { repository.refresh(args) }.to raise_error(TypeError,
+                                                           'test type error')
+      end
+    end
+
+    context 'when swallow_exceptions is set' do
+      it 'swallows the specified exceptions and raises others' do
+        repo_klass = Class.new do
+          include Hitnmiss::BackgroundRefreshRepository
+          refresh_interval 60
+
+          def stale?(*args)
+            raise TypeError, 'test type error'
+          end
+        end
+
+        repo_klass_two = Class.new do
+          include Hitnmiss::BackgroundRefreshRepository
+          refresh_interval 60
+
+          def stale?(*args)
+            raise RuntimeError, 'test hoopty'
+          end
+        end
+
+
+        repository = repo_klass.new
+        repository_two = repo_klass_two.new
+        args = double('args')
+        expect { repository.refresh(args, swallow_exceptions: [TypeError]) }.not_to raise_error
+        expect { repository_two.refresh(args, swallow_exceptions: [TypeError]) }.to raise_error(RuntimeError, 'test hoopty')
+      end
+    end
   end
 end
