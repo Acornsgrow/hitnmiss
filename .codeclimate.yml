@@ -1,0 +1,9 @@
+---
+engines:
+  fixme:
+    enabled: true
+  rubcop:
+    enabled: true
+ratings:
+  paths:
+  - "lib/**/*"
