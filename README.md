@@ -220,16 +220,18 @@ The `fetch(*args)` method is responsible for obtaining the value that you want
 to cache by whatever means necessary and returning a `Hitnmiss::Entity`
 containing the value, and optionally an `expiration`, `fingerprint`, and
 `last_modified`. **Note:** The `*args` passed into the `fetch(*args)` method
-are whatever the arguments are that are passed into `prime` and `get` methods
-when they are called. Defining the `fetch(*args)` method is **required** if you
-want to be able to cache values or get cached values using the `prime` or `get`
-methods.
+originate as the arguments that are passed into `prime` and `get` methods when
+they are called. For more context on `prime` and `get` please so [Priming an
+Entity](#priming-an-entity) and [Getting a Value](#getting-a-value)
+respectively. Defining the `fetch(*args)` method is **required** if you want to
+be able to cache values or get cached values using the `prime` or `get` methods.
 
-If you wish to support priming the cache for an entire repository using
-the `prime_all` method, you **must** define the `fetch_all(keyspace)`
-method on the repository class. This method **must** return a collection
-of hashes describing the `args` that would be used to get an entity
-and the corresponding `Hitnmiss::Entity`. See example above.
+If you wish to support [priming the cache for an entire
+repository](#priming-the-entire-repository) using the `prime_all` method, you
+**must** define the `fetch_all(keyspace)` method on the repository class. This
+method **must** return a collection of hashes describing the `args` that would
+be used to get an entity and the corresponding `Hitnmiss::Entity`. See example
+above.
 
 #### Set Cache Source based Expiration
 
