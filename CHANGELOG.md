@@ -6,6 +6,10 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+#### v2.1.0
+
+* Changed: Documentation for open sourcing
+
 #### v2.0.0
 
 * Added: `BackgroundRefreshRepository` module
