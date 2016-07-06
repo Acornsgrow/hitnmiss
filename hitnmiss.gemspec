@@ -6,8 +6,8 @@ require 'hitnmiss/version'
 Gem::Specification.new do |spec|
   spec.name          = "hitnmiss"
   spec.version       = Hitnmiss::VERSION
-  spec.authors       = ["Andrew De Ponte"]
-  spec.email         = ["cyphactor@gmail.com"]
+  spec.authors       = ["Andrew De Ponte", "Brian Miller", "Kyle Chong"]
+  spec.email         = ["cyphactor@gmail.com", "brimil01@gmail.com", "me@kylechong.com"]
 
   spec.summary       = %q{Ruby read-through, write-behind caching using POROs}
   spec.description   = %q{Ruby gem to support using the Repository pattern for read-through, write-behind caching using POROs}
