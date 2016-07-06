@@ -1,7 +1,7 @@
-[![Build Status](https://travis-ci.com/Acornsgrow/hitnmiss.svg?token=GGEgqzL4zt7sa3zVgspU&branch=master)](https://travis-ci.com/Acornsgrow/hitnmiss)
-[![Code Climate](https://codeclimate.com/repos/567a3c30bd3f3b63510017dd/badges/e979a32e79ec12d35896/gpa.svg)](https://codeclimate.com/repos/567a3c30bd3f3b63510017dd/feed)
-[![Test Coverage](https://codeclimate.com/repos/567a3c30bd3f3b63510017dd/badges/e979a32e79ec12d35896/coverage.svg)](https://codeclimate.com/repos/567a3c30bd3f3b63510017dd/coverage)
-[![Issue Count](https://codeclimate.com/repos/567a3c30bd3f3b63510017dd/badges/e979a32e79ec12d35896/issue_count.svg)](https://codeclimate.com/repos/567a3c30bd3f3b63510017dd/feed)
+[![Build Status](https://travis-ci.org/Acornsgrow/hitnmiss.svg?branch=master)](https://travis-ci.org/Acornsgrow/hitnmiss)
+[![Code Climate](https://codeclimate.com/github/Acornsgrow/hitnmiss/badges/gpa.svg)](https://codeclimate.com/github/Acornsgrow/hitnmiss)
+[![Test Coverage](https://codeclimate.com/github/Acornsgrow/hitnmiss/badges/coverage.svg)](https://codeclimate.com/github/Acornsgrow/hitnmiss/coverage)
+[![Issue Count](https://codeclimate.com/github/Acornsgrow/hitnmiss/badges/issue_count.svg)](https://codeclimate.com/github/Acornsgrow/hitnmiss)
 
 # Hitnmiss
 
