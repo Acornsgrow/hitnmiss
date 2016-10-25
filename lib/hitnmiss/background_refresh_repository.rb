@@ -34,28 +34,39 @@ module Hitnmiss
       end
 
       def refresh(*args, swallow_exceptions: [])
+        self.class.logger.debug("hitnmiss: refresh(#{args.inspect}, swallow_exceptions: #{swallow_exceptions.inspect}) called")
         if swallow_exceptions.empty?
+          self.class.logger.debug("hitnmiss: refresh(#{args.inspect}, swallow_exceptions: #{swallow_exceptions.inspect}) about to check stale?")
           if stale?(*args)
+            self.class.logger.debug("hitnmiss: refresh(#{args.inspect}, swallow_exceptions: #{swallow_exceptions.inspect}) is stale, about to prime")
             prime(*args)
           end
         else
           begin
+            self.class.logger.debug("hitnmiss: refresh(#{args.inspect}, swallow_exceptions: #{swallow_exceptions.inspect}) about to check stale?")
             if stale?(*args)
+              self.class.logger.debug("hitnmiss: refresh(#{args.inspect}, swallow_exceptions: #{swallow_exceptions.inspect}) is stale, about to prime")
               prime(*args)
             end
-          rescue *swallow_exceptions
+          rescue *swallow_exceptions => e
+            self.class.logger.error("hitnmiss: refresh(#{args.inspect}, swallow_exceptions: #{swallow_exceptions.inspect}) swallowed exception: #{e.inspect}")
+            self.class.logger.error(e.backtrace.join("\n"))
           end
         end
       end
 
       def background_refresh(*args, swallow_exceptions: [])
+        self.class.logger.debug("hitnmiss: background_refresh(#{args.inspect}) called")
         @refresh_thread = Thread.new(self, args) do |repository, args|
           while(true) do
+            repository.class.logger.debug("hitnmiss: background_refresh(#{args.inspect}): about to call refresh()")
             refresh(*args, swallow_exceptions: swallow_exceptions)
+            repository.class.logger.debug("hitnmiss: background_refresh(#{args.inspect}): about to sleep for #{repository.class.refresh_interval}")
             sleep repository.class.refresh_interval
           end
         end
         @refresh_thread.abort_on_exception = true
+        self.class.logger.debug("hitnmiss: background_refresh(#{args.inspect}) enabled abort on exception")
       end
 
       private
