@@ -6,6 +6,7 @@ module Hitnmiss
     class RefreshIntervalRequired < StandardError; end
 
     def self.included(mod)
+      mod.extend(OptionalLogger::LoggerManagement)
       mod.include(Repository::CacheManagement)
       mod.extend(ClassMethods)
       mod.include(InstanceMethods)
