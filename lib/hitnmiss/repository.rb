@@ -3,7 +3,7 @@ require 'hitnmiss/repository/cache_management'
 module Hitnmiss
   module Repository
     def self.included(mod)
-      mod.extend(OptionalLogger::LoggerManagement)
+      mod.include(OptionalLogger::LoggerManagement)
       mod.include(CacheManagement)
       mod.extend(ClassMethods)
       mod.include(InstanceMethods)

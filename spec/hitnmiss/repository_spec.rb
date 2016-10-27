@@ -1,17 +1,18 @@
 require 'spec_helper'
 
 describe Hitnmiss::Repository do
-  describe '.logger' do
+  describe '#logger' do
     it 'sets the logger using optional logger' do
       mylogger = double('my logger')
 
       repo_klass = Class.new do
         include Hitnmiss::Repository
-        logger(mylogger)
       end
+      repo = repo_klass.new
+      repo.logger(mylogger)
 
-      expect(repo_klass.logger).to be_a(OptionalLogger::Logger)
-      expect(repo_klass.logger.wrapped_logger).to eq(mylogger)
+      expect(repo.logger).to be_a(OptionalLogger::Logger)
+      expect(repo.logger.wrapped_logger).to eq(mylogger)
     end
   end
 
