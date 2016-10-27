@@ -179,6 +179,24 @@ end
 
 This works exactly the same with the `Hitnmiss::BackgroundRefreshRepository`.
 
+### Set a Logger
+
+Hitnmiss defaults to not logging. However, if you would like to get detailed
+logging from Hitnmiss you can do so by passing your application controlled
+logger instance to the Hitnmiss repository. An example of this can be seen
+below.
+
+```ruby
+class MostRecentPrice
+  include Hitnmiss::Repository
+
+  logger Logger.new(STDOUT)
+end
+```
+
+**Note:** The above works exactly the same way for `Hitnmiss::Repository` and
+`Hitnmiss::BackgroundRefreshRepository`.
+
 ### Define Fetcher Methods
 
 You may be asking yourself, "How does the cache value get set?" Well,

@@ -1,3 +1,4 @@
+require "optional_logger"
 require "hitnmiss/version"
 require "hitnmiss/errors"
 require "hitnmiss/repository"

@@ -1,6 +1,20 @@
 require 'spec_helper'
 
 RSpec.describe Hitnmiss::BackgroundRefreshRepository do
+  describe '.logger' do
+    it 'sets the logger using optional logger' do
+      mylogger = double('my logger')
+
+      repo_klass = Class.new do
+        include Hitnmiss::BackgroundRefreshRepository
+        logger(mylogger)
+      end
+
+      expect(repo_klass.logger).to be_a(OptionalLogger::Logger)
+      expect(repo_klass.logger.wrapped_logger).to eq(mylogger)
+    end
+  end
+
   describe '.refresh_interval' do
     context 'when given a refresh interval' do
       it 'set the refresh interval for the cache repository' do
