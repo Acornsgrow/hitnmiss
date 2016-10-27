@@ -197,6 +197,19 @@ end
 **Note:** The above works exactly the same way for `Hitnmiss::Repository` and
 `Hitnmiss::BackgroundRefreshRepository`.
 
+### Use the File Driver
+
+Hitnmiss ships with an alternate file based driver that can be used to write
+cache values to individual files in a folder.
+
+```ruby
+class MostRecentPrice
+  include Hitnmiss::Repository
+
+  driver Hitnmiss::FileDriver.new("some_cache_folder")
+end
+```
+
 ### Define Fetcher Methods
 
 You may be asking yourself, "How does the cache value get set?" Well,
