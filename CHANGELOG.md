@@ -6,6 +6,8 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+* Added logging support to BackgroundRefreshRepository and Repository
+
 #### v2.1.0
 
 * Changed: Documentation for open sourcing
