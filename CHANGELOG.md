@@ -6,6 +6,7 @@ versions, as well as provide a rough history.
 
 #### Next Release
 
+* Changed logging interface from class based to instance based
 * Added logging support to BackgroundRefreshRepository and Repository
 
 #### v2.1.0
