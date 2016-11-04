@@ -32,23 +32,21 @@ module Hitnmiss
         cached_entity = @cache[key].dup if @cache[key]
       end
 
-      return Hitnmiss::Driver::Miss.new if cached_entity.nil?
-
-      if cached_entity.has_key?('expiration')
-        if Time.now.to_i >= cached_entity['expiration']
-          return Hitnmiss::Driver::Miss.new
-        end
-      end
+      return Hitnmiss::Driver::Miss.new if cached_entity.nil? || expired?(cached_entity)
 
       return Hitnmiss::Driver::Hit.new(cached_entity['value'],
                                        build_hit_keyword_args(cached_entity))
+    end
+
+    def expired?(entity)
+      entity.has_key?('expiration') && Time.now.to_i >= entity['expiration']
     end
 
     def all(keyspace)
       @mutex.synchronize do
         matching_values = []
         @cache.each do |key, entity|
-          matching_values << entity.fetch('value') if match_keyspace?(key, keyspace)
+          matching_values << entity.fetch('value') if match_keyspace?(key, keyspace) && !expired?(entity)
         end
         return matching_values
       end

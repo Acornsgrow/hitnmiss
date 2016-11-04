@@ -209,15 +209,18 @@ describe "Hitnmiss::InMemoryDriver" do
   end
 
   describe '#all' do
-    it 'returns only the values whose keys begin with the keyspace' do
+    it 'returns only the values whose keys begin with the keyspace and are not expired' do
       driver = Hitnmiss::InMemoryDriver.new
-      cache = {
-        'keyspace.some_key' => { 'value' => 'foo', 'expiration' => 23 },
-        'keyspace.some_other_key' => { 'value' => 'bar', 'expiration' => 33 },
-        'notkeyspace.some_key' => { 'value' => 'baz', 'expiration' => 43 }
-      }
-      driver.instance_variable_set(:@cache, cache)
-      expect(driver.all('keyspace')).to match_array(['foo', 'bar'])
+      cur_time = Time.now.utc
+      Timecop.freeze(cur_time) do
+        cache = {
+          'keyspace.some_key' => { 'value' => 'foo', 'expiration' => 23 },
+          'keyspace.some_other_key' => { 'value' => 'bar', 'expiration' => (cur_time.to_i + 234232) },
+          'notkeyspace.some_key' => { 'value' => 'baz', 'expiration' => (cur_time.to_i + 234232) }
+        }
+        driver.instance_variable_set(:@cache, cache)
+        expect(driver.all('keyspace')).to match_array(['bar'])
+      end
     end
   end
 

@@ -1,11 +1,13 @@
 require 'spec_helper'
 
+FOLDER = File.expand_path("../../support/cache", __FILE__)
+
 describe "Hitnmiss::FileDriver" do
-  let(:folder) { File.expand_path("../../support/cache", __FILE__) }
+  let(:folder) { FOLDER }
   subject { Hitnmiss::FileDriver.new(folder) }
 
-  before do
-    subject
+  before(:all) do
+    Hitnmiss::FileDriver.init(FOLDER)
   end
 
   after do
@@ -51,7 +53,6 @@ describe "Hitnmiss::FileDriver" do
     context 'when given entity has a last_modified' do
       it 'caches the given value with key, expiration, and last_modified' do
         entity = Hitnmiss::Entity.new('some_value', expiration: 1,
-                                      fingerprint: 'foofingerprint',
                                       last_modified: '2016-04-14T11:00:00Z')
         now = Time.now.utc
         Timecop.freeze(now) do
@@ -60,7 +61,6 @@ describe "Hitnmiss::FileDriver" do
         cache = JSON.parse(File.read(File.join(folder, "some_key")))
         expect(cache['value']).to eq('some_value')
         expect(cache['expiration']).to eq(now.to_i + 1)
-        expect(cache['fingerprint']).to eq('foofingerprint')
         expect(cache['last_modified']).to eq('2016-04-14T11:00:00Z')
       end
 
@@ -98,7 +98,6 @@ describe "Hitnmiss::FileDriver" do
       context 'when given entity has a last_modified' do
         it 'caches the given value with key, expiration, and last_modified' do
           entity = Hitnmiss::Entity.new('some_value',
-                                        fingerprint: 'foofingerprint',
                                         last_modified: '2016-04-14T11:00:00Z')
           now = Time.now.utc
           Timecop.freeze(now) do
@@ -106,7 +105,6 @@ describe "Hitnmiss::FileDriver" do
           end
           cache = JSON.parse(File.read(File.join(folder, "some_key")))
           expect(cache['value']).to eq('some_value')
-          expect(cache['fingerprint']).to eq('foofingerprint')
           expect(cache['last_modified']).to eq('2016-04-14T11:00:00Z')
         end
       end
@@ -159,12 +157,15 @@ describe "Hitnmiss::FileDriver" do
 
   describe '#all' do
     it 'returns only the values whose keys begin with the keyspace' do
-      {
-        'keyspace.some_key' => { 'value' => 'foo', 'expiration' => 23 },
-        'keyspace.some_other_key' => { 'value' => 'bar', 'expiration' => 33 },
-        'notkeyspace.some_key' => { 'value' => 'baz', 'expiration' => 43 }
-      }.each {|k,v| File.write(File.join(folder, k), v.to_json) }
-      expect(subject.all('keyspace')).to match_array(['foo', 'bar'])
+      cur_time = Time.now.utc
+      Timecop.freeze(cur_time) do
+        cache = {
+          'keyspace.some_key' => { 'value' => 'foo', 'expiration' => 23 },
+          'keyspace.some_other_key' => { 'value' => 'bar', 'expiration' => (cur_time.to_i + 234232) },
+          'notkeyspace.some_key' => { 'value' => 'baz', 'expiration' => (cur_time.to_i + 234232) }
+        }.each {|k,v| File.write(File.join(folder, k), v.to_json) }
+        expect(subject.all('keyspace')).to match_array(['bar'])
+      end
     end
   end
 

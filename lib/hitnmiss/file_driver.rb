@@ -4,9 +4,13 @@ module Hitnmiss
   class FileDriver
     include Hitnmiss::Driver::Interface
 
+    def self.init(folder)
+      FileUtils.mkdir_p(folder)
+    end
+
     def initialize(folder)
       @folder = File.expand_path(folder)
-      FileUtils.mkdir_p(@folder)
+      self.class.init(@folder)
     end
 
     def set(key, entity)
@@ -25,16 +29,14 @@ module Hitnmiss
     def get(key)
       cached_entity = read(file_path(key))
 
-      return Hitnmiss::Driver::Miss.new if cached_entity.nil?
-
-      if cached_entity.has_key?('expiration')
-        if Time.now.to_i >= cached_entity['expiration']
-          return Hitnmiss::Driver::Miss.new
-        end
-      end
+      return Hitnmiss::Driver::Miss.new if cached_entity.nil? || expired?(cached_entity)
 
       return Hitnmiss::Driver::Hit.new(cached_entity['value'],
                                        build_hit_keyword_args(cached_entity))
+    end
+
+    def expired?(entity)
+      entity.has_key?('expiration') && Time.now.to_i >= entity['expiration']
     end
 
     def all(keyspace)
@@ -42,7 +44,7 @@ module Hitnmiss
       Dir["#{@folder}/*"].each do |filename|
         if match_keyspace?(File.basename(filename), keyspace)
           entity = read(filename)
-          matching_values << entity['value'] if entity
+          matching_values << entity['value'] if entity && !expired?(entity)
         end
       end
       return matching_values
