@@ -16,7 +16,7 @@ module Hitnmiss
     def set(key, entity)
       cache = { 'value' => entity.value }
       if entity.expiration
-        expiration = Time.now.to_i + entity.expiration
+        expiration = epoch_time + entity.expiration
         cache['expiration'] = expiration
       end
       cache['fingerprint'] = entity.fingerprint if entity.fingerprint
@@ -36,7 +36,7 @@ module Hitnmiss
     end
 
     def expired?(entity)
-      entity.has_key?('expiration') && Time.now.to_i >= entity['expiration']
+      entity.has_key?('expiration') && epoch_time >= entity['expiration']
     end
 
     def all(keyspace)
@@ -75,6 +75,10 @@ module Hitnmiss
     def match_keyspace?(key, keyspace)
       regex = Regexp.new("^#{keyspace}*")
       return regex.match(key)
+    end
+
+    def epoch_time
+      Time.now.utc.to_i
     end
 
     def internal_timestamp

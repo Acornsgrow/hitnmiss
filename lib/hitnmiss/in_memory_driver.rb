@@ -9,7 +9,7 @@ module Hitnmiss
 
     def set(key, entity)
       if entity.expiration
-        expiration = Time.now.to_i + entity.expiration
+        expiration = epoch_time + entity.expiration
         @mutex.synchronize do
           @cache[key] = { 'value' => entity.value, 'expiration' => expiration }
           @cache[key]['fingerprint'] = entity.fingerprint if entity.fingerprint
@@ -39,7 +39,7 @@ module Hitnmiss
     end
 
     def expired?(entity)
-      entity.has_key?('expiration') && Time.now.to_i >= entity['expiration']
+      entity.has_key?('expiration') && epoch_time >= entity['expiration']
     end
 
     def all(keyspace)
@@ -70,6 +70,10 @@ module Hitnmiss
     end
 
     private
+
+    def epoch_time
+      Time.now.utc.to_i
+    end
 
     def internal_timestamp
       Time.now.utc.iso8601
