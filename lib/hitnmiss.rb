@@ -7,6 +7,7 @@ require "hitnmiss/driver_registry"
 require "hitnmiss/entity"
 require "hitnmiss/driver"
 require "hitnmiss/in_memory_driver"
+require "hitnmiss/file_driver"
 
 module Hitnmiss
   @driver_registry = DriverRegistry.new
