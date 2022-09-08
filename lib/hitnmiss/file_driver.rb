@@ -32,7 +32,7 @@ module Hitnmiss
       return Hitnmiss::Driver::Miss.new if cached_entity.nil? || expired?(cached_entity)
 
       return Hitnmiss::Driver::Hit.new(cached_entity['value'],
-                                       build_hit_keyword_args(cached_entity))
+                                       **build_hit_keyword_args(cached_entity))
     end
 
     def expired?(entity)
@@ -96,7 +96,7 @@ module Hitnmiss
       if cached_entity.has_key?('last_modified')
         options[:last_modified] = cached_entity['last_modified']
       end
-      return **options
+      return options
     end
   end
 end
