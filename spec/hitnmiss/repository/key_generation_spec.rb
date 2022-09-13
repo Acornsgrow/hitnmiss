@@ -12,7 +12,7 @@ RSpec.describe Hitnmiss::Repository::KeyGeneration do
       repository = repo_klass.new
 
       expect(repository.send(:generate_key, 'true', true, 1, 'zar')).to \
-        eq('HooptyJack.String:true.TrueClass:true.Fixnum:1.String:zar')
+        eq('HooptyJack.String:true.TrueClass:true.Integer:1.String:zar')
     end
   end
 end
