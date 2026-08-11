@@ -10,15 +10,30 @@ jobs:
     name: Build + Publish
     runs-on: ubuntu-latest
     permissions:
+      id-token: write
       contents: read
       packages: write
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Get Cloudsmith OIDC token
+        uses: acornsgrow/cloudsmith-oidc-action@v1
+        id: cloudsmith-oidc
+        with:
+          organization: acorns
+          service_account: github-actions
+
       - name: Set up Ruby 2.x
         uses: actions/setup-ruby@v1
         with:
           ruby-version: 2.6.x
+
+      - name: Configure Bundler for Cloudsmith
+        run: |
+          echo "BUNDLE_PKG__ACORNS__COM=token:$CLOUDSMITH_API_KEY" >> "$GITHUB_ENV"
+        env:
+          CLOUDSMITH_API_KEY: ${{ steps.cloudsmith-oidc.outputs.token }}
 
       - name: Run tests
         run: |
