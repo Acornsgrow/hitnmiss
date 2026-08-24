@@ -10,15 +10,27 @@ jobs:
     name: Build + Publish
     runs-on: ubuntu-latest
     permissions:
+      id-token: write
       contents: read
       packages: write
 
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Ruby 2.x
         uses: actions/setup-ruby@v1
         with:
           ruby-version: 2.6.x
+
+      - name: Authenticate to Cloudsmith
+        uses: cloudsmith-io/cloudsmith-cli-action@v2
+        with:
+          oidc-namespace: acorns
+          oidc-service-slug: ${{ secrets.CLOUDSMITH_OIDC_SLUG }}
+          oidc-auth-only: 'true'
+
+      - name: Configure Bundler for Cloudsmith
+        run: echo "BUNDLE_PKG__ACORNS__COM=token:$CLOUDSMITH_API_KEY" >> "$GITHUB_ENV"
 
       - name: Run tests
         run: |
