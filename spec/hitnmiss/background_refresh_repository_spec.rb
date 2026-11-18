@@ -569,9 +569,8 @@ RSpec.describe Hitnmiss::BackgroundRefreshRepository do
         end
 
         repository = repo_klass.new
-        allow(repository).to receive(:stale?).and_return(true)
 
-        expect(repository).to receive(:stale?).with('user-42', scope: :full)
+        expect(repository).to receive(:stale?).with('user-42', scope: :full).and_return(true)
         expect(repository).to receive(:prime).with('user-42', scope: :full)
 
         repository.refresh('user-42', scope: :full)
