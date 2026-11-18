@@ -3,7 +3,7 @@ module Hitnmiss
     module Fetcher
       private
 
-      def fetch(*args)
+      def fetch(*args, **kwargs)
         raise Hitnmiss::Errors::NotImplemented
       end
 

@@ -19,8 +19,8 @@ module Hitnmiss
           Hitnmiss.driver(self.class.driver).clear(self.class.keyspace)
         end
 
-        def delete(*args)
-          Hitnmiss.driver(self.class.driver).delete(generate_key(*args))
+        def delete(*args, **kwargs)
+          Hitnmiss.driver(self.class.driver).delete(generate_key(*args, **kwargs))
         end
 
         def all
@@ -37,16 +37,16 @@ module Hitnmiss
           end
         end
 
-        def prime(*args)
-          cacheable_entity = fetch(*args)
-          cache_entity(args, cacheable_entity)
+        def prime(*args, **kwargs)
+          cacheable_entity = fetch(*args, **kwargs)
+          cache_entity(merge_args(args, kwargs), cacheable_entity)
           return cacheable_entity.value
         end
 
-        def get(*args)
-          hit_or_miss = get_from_cache(*args)
+        def get(*args, **kwargs)
+          hit_or_miss = get_from_cache(*args, **kwargs)
           if hit_or_miss.is_a?(Hitnmiss::Driver::Miss)
-            return prime(*args)
+            return prime(*args, **kwargs)
           elsif hit_or_miss.is_a?(Hitnmiss::Driver::Hit)
             return hit_or_miss.value
           else
@@ -56,13 +56,21 @@ module Hitnmiss
 
         private
 
-        def get_from_cache(*args)
-          Hitnmiss.driver(self.class.driver).get(generate_key(*args))
+        def get_from_cache(*args, **kwargs)
+          Hitnmiss.driver(self.class.driver).get(generate_key(*args, **kwargs))
         end
 
         def cache_entity(args, cacheable_entity)
           Hitnmiss.driver(self.class.driver).set(generate_key(*args),
                                                  cacheable_entity)
+        end
+
+        # Preserves pre-Ruby-3 cache key layout: when a caller passes keyword
+        # arguments, Ruby 2 stored them as a trailing positional Hash. We
+        # reconstruct that shape so generate_key produces the same key across
+        # Ruby versions during a rolling deploy.
+        def merge_args(args, kwargs)
+          kwargs.empty? ? args : args + [kwargs]
         end
       end
     end

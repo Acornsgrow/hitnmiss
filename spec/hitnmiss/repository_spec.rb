@@ -58,4 +58,75 @@ describe Hitnmiss::Repository do
       end
     end
   end
+
+  describe 'Ruby 3 keyword argument forwarding' do
+    it 'passes keyword arguments from #get through to #fetch' do
+      repo_klass = Class.new do
+        include Hitnmiss::Repository
+
+        default_expiration 60
+
+        attr_reader :received_args, :received_kwargs
+
+        def fetch(*args, **kwargs)
+          @received_args = args
+          @received_kwargs = kwargs
+          Hitnmiss::Entity.new('some-value')
+        end
+      end
+
+      allow(repo_klass).to receive(:name).and_return('KwargForwarding1')
+
+      repository = repo_klass.new
+      repository.get(ids: [1, 2])
+
+      expect(repository.received_args).to eq([])
+      expect(repository.received_kwargs).to eq(ids: [1, 2])
+    end
+
+    it 'produces the same cache key whether the caller uses a kwarg or a positional Hash' do
+      repo_klass = Class.new do
+        include Hitnmiss::Repository
+
+        default_expiration 60
+
+        def fetch(*args, **kwargs)
+          Hitnmiss::Entity.new('some-value')
+        end
+      end
+
+      allow(repo_klass).to receive(:name).and_return('KwargForwarding2')
+
+      repository = repo_klass.new
+
+      kwarg_key = repository.send(:generate_key, ids: [1])
+      positional_hash_key = repository.send(:generate_key, { ids: [1] })
+
+      expect(kwarg_key).to eq(positional_hash_key)
+    end
+
+    it 'supports a mix of positional and keyword arguments' do
+      repo_klass = Class.new do
+        include Hitnmiss::Repository
+
+        default_expiration 60
+
+        attr_reader :received_args, :received_kwargs
+
+        def fetch(*args, **kwargs)
+          @received_args = args
+          @received_kwargs = kwargs
+          Hitnmiss::Entity.new('mixed')
+        end
+      end
+
+      allow(repo_klass).to receive(:name).and_return('KwargForwarding3')
+
+      repository = repo_klass.new
+      repository.get('user-42', scope: :full)
+
+      expect(repository.received_args).to eq(['user-42'])
+      expect(repository.received_kwargs).to eq(scope: :full)
+    end
+  end
 end
