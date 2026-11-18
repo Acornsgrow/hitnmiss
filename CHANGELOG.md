@@ -7,8 +7,9 @@ versions, as well as provide a rough history.
 #### v2.4.0
 
 * Added: Ruby 3 keyword argument support. `Repository#get`, `#prime`,
-  `#delete`, `BackgroundRefreshRepository#refresh`, `#background_refresh`,
-  `#stale?`, and the fetcher's `#fetch` now accept and forward keyword
+  `#get_from_cache`, `#delete`, `#generate_key`, the `Fetcher#fetch`
+  default, and `BackgroundRefreshRepository#refresh`,
+  `#background_refresh`, and `#stale?` now accept and forward keyword
   arguments correctly on Ruby 3. Callers that write `repo.get(ids: [1])`
   reach `fetch` with keywords instead of a positional Hash.
 * Changed: Minimum Ruby version is now `>= 3.0`. Ruby 2.x is no longer

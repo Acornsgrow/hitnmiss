@@ -560,5 +560,80 @@ RSpec.describe Hitnmiss::BackgroundRefreshRepository do
         expect { repository_two.refresh(args, swallow_exceptions: [TypeError]) }.to raise_error(RuntimeError, 'test hoopty')
       end
     end
+
+    context 'when called with keyword arguments' do
+      it 'forwards the kwargs to stale? and prime' do
+        repo_klass = Class.new do
+          include Hitnmiss::BackgroundRefreshRepository
+          refresh_interval 60
+        end
+
+        repository = repo_klass.new
+        allow(repository).to receive(:stale?).and_return(true)
+
+        expect(repository).to receive(:stale?).with('user-42', scope: :full)
+        expect(repository).to receive(:prime).with('user-42', scope: :full)
+
+        repository.refresh('user-42', scope: :full)
+      end
+    end
+  end
+
+  describe '#background_refresh' do
+    context 'when called with keyword arguments' do
+      it 'threads the kwargs through to refresh' do
+        repo_klass = Class.new do
+          include Hitnmiss::BackgroundRefreshRepository
+          refresh_interval 60
+        end
+
+        repository = repo_klass.new
+
+        # Stub refresh so we can assert on its inputs without kicking off real
+        # work, and arrange for the thread to exit after a single tick.
+        expect(repository).to receive(:refresh)
+          .with('user-42', swallow_exceptions: [], scope: :full)
+          .and_raise(StandardError, 'stop-thread')
+
+        repository.background_refresh('user-42', scope: :full)
+        thread = repository.instance_variable_get(:@refresh_thread)
+        expect { thread.join }.to raise_error(StandardError, 'stop-thread')
+      end
+    end
+  end
+
+  describe '#stale?' do
+    context 'when called with keyword arguments' do
+      it 'accepts kwargs and returns true by default' do
+        repo_klass = Class.new do
+          include Hitnmiss::BackgroundRefreshRepository
+          refresh_interval 60
+        end
+
+        repository = repo_klass.new
+        expect(repository.stale?('user-42', scope: :full)).to eq(true)
+      end
+    end
+  end
+
+  describe '#delete' do
+    context 'when called with keyword arguments' do
+      it 'forwards the kwargs to generate_key' do
+        repo_klass = Class.new do
+          include Hitnmiss::BackgroundRefreshRepository
+          driver :my_driver
+          refresh_interval 60
+        end
+
+        driver = double('cache driver', delete: nil)
+        Hitnmiss.register_driver(:my_driver, driver)
+
+        repository = repo_klass.new
+
+        expect(repository).to receive(:generate_key).with(ids: [1])
+
+        repository.delete(ids: [1])
+      end
+    end
   end
 end
