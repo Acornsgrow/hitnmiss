@@ -175,9 +175,9 @@ describe "Hitnmiss::FileDriver" do
         'keyspace.some_key' => { 'value' => 'foo', 'expiration' => 23 },
         'keyspace.some_other_key' => { 'value' => 'bar', 'expiration' => 33 }
       }.each {|k,v| File.write(File.join(folder, k), v.to_json) }
-      expect(File.exists?(File.join(folder, 'keyspace.some_key'))).to eq true
+      expect(File.exist?(File.join(folder, 'keyspace.some_key'))).to eq true
       subject.delete('keyspace.some_key')
-      expect(File.exists?(File.join(folder, 'keyspace.some_key'))).to eq false
+      expect(File.exist?(File.join(folder, 'keyspace.some_key'))).to eq false
     end
   end
 
@@ -189,9 +189,9 @@ describe "Hitnmiss::FileDriver" do
         'notkeyspace.some_key' => { 'value' => 'baz', 'expiration' => 43 }
       }.each {|k,v| File.write(File.join(folder, k), v.to_json) }
       subject.clear('keyspace')
-      expect(File.exists?(File.join(folder, "notkeyspace.some_key"))).to eq true
-      expect(File.exists?(File.join(folder, "keyspace.some_key"))).to eq false
-      expect(File.exists?(File.join(folder, "keyspace.some_other_key"))).to eq false
+      expect(File.exist?(File.join(folder, "notkeyspace.some_key"))).to eq true
+      expect(File.exist?(File.join(folder, "keyspace.some_key"))).to eq false
+      expect(File.exist?(File.join(folder, "keyspace.some_other_key"))).to eq false
     end
   end
 end

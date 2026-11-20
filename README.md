@@ -90,10 +90,10 @@ end
 
 Once you have defined your Background Refresh Repository in order to get the
 background process to update your cache you have to kick it off using the
-`background_refresh(*args, swallow_exceptions: [])` method as seen in the
+`background_refresh(*args, swallow_exceptions: [], **kwargs)` method as seen in the
 example below. The optional keyword argument `swallow_exceptions` defaults to
 `[]`. If enabled it will prevent the specified exceptions, raised in the
-`fetch(*args)` or `stale?(*args)` methods you defined, from killing the
+`fetch(*args, **kwargs)` or `stale?(*args, **kwargs)` methods you defined, from killing the
 background thread, and prevent the exceptions from making their way up to the
 application. This is useful in scenarios where you want it to absorb say timeout
 exceptions, etc. and continue trucking along. **Note:** Any other exceptions not
@@ -118,13 +118,13 @@ works is if the cache is identified to be stale, then it primes the cache in the
 background, if the cache is identified to NOT be stale, then it sleeps for
 another `refresh_interval`.
 
-The stale checker, `stale?(*args)`, defaults to an always stale value of `true`.
+The stale checker, `stale?(*args, **kwargs)`, defaults to an always stale value of `true`.
 This causes the background refresh process to prime the cache every
 `refresh_interval`.
 
 If you want your cache implementation to be smarter and say validate a
 fingerprint or last modified value against the source, you can do it simply by
-overwriting the `stale?(*args)` method with your own staleness checking logic.
+overwriting the `stale?(*args, **kwargs)` method with your own staleness checking logic.
 The following is an example of this.
 
 ```ruby
@@ -137,8 +137,8 @@ class MostRecentPrice
     @client = HTTPClient.new
   end
 
-  def stale?(*args)
-    hit_or_miss = get_from_cache(*args)
+  def stale?(*args, **kwargs)
+    hit_or_miss = get_from_cache(*args, **kwargs)
     if hit_or_miss.is_a?(Hitnmiss::Driver::Miss)
       return true
     elsif hit_or_miss.is_a?(Hitnmiss::Driver::Hit)
@@ -218,7 +218,7 @@ the answer is one of two ways.
 * Fetching an individual cacheable entity
 * Fetching all of the repository's cacheable entities
 
-Both of these scenarios are supported by defining the `fetch(*args)`
+Both of these scenarios are supported by defining the `fetch(*args, **kwargs)`
 method or the `fetch_all(keyspace)` method respectively in your cache
 repository class. See the following example.
 
@@ -230,7 +230,7 @@ class MostRecentPrice
 
   private
 
-  def fetch(*args)
+  def fetch(*args, **kwargs)
     # - do whatever to get the value you want to cache
     # - construct a Hitnmiss::Entity with the value
     Hitnmiss::Entity.new('some value')
@@ -247,14 +247,14 @@ class MostRecentPrice
 end
 ```
 
-The `fetch(*args)` method is responsible for obtaining the value that you want
+The `fetch(*args, **kwargs)` method is responsible for obtaining the value that you want
 to cache by whatever means necessary and returning a `Hitnmiss::Entity`
 containing the value, and optionally an `expiration`, `fingerprint`, and
-`last_modified`. **Note:** The `*args` passed into the `fetch(*args)` method
+`last_modified`. **Note:** The `*args` passed into the `fetch(*args, **kwargs)` method
 originate as the arguments that are passed into `prime` and `get` methods when
 they are called. For more context on `prime` and `get` please so [Priming an
 Entity](#priming-an-entity) and [Getting a Value](#getting-a-value)
-respectively. Defining the `fetch(*args)` method is **required** if you want to
+respectively. Defining the `fetch(*args, **kwargs)` method is **required** if you want to
 be able to cache values or get cached values using the `prime` or `get` methods.
 
 If you wish to support [priming the cache for an entire
@@ -268,7 +268,7 @@ above.
 
 In some cases you might need to set the expiration to be a different
 value for each cached value. This is generally needed when you get
-information back from a remote entity in the `fetch(*args)` method and you
+information back from a remote entity in the `fetch(*args, **kwargs)` method and you
 use it to compute the expiration. This for example could be via the `Expiration`
 header in an HTTP response. Once you have the expiration for that
 value you can set it by passing the expiration into the
@@ -284,7 +284,7 @@ class MostRecentPrice
 
   private
 
-  def fetch(*args)
+  def fetch(*args, **kwargs)
     # - do whatever to get the value you want to cache
     # - construct a Hitnmiss::Entity with the value and optionally a
     #   result based expiration. If no result based expiration is
@@ -314,7 +314,7 @@ class MostRecentPrice
 
   private
 
-  def fetch(*args)
+  def fetch(*args, **kwargs)
     # - do whatever to get the value you want to cache
     # - do whatever to get the fingerprint of the value you want to cache
     # - construct a Hitnmiss::Entity with the value and optionally a
@@ -345,7 +345,7 @@ class MostRecentPrice
 
   private
 
-  def fetch(*args)
+  def fetch(*args, **kwargs)
     # - do whatever to get the value you want to cache
     # - do whatever to get the last modified of the value you want to cache
     # - construct a Hitnmiss::Entity with the value and optionally a
@@ -363,7 +363,7 @@ how to get going with them after defining your cache repository.
 
 ### Priming an entity
 
-Once you have defined the `fetch(*args)` method you can construct an
+Once you have defined the `fetch(*args, **kwargs)` method you can construct an
 instance of your cache repository and use it. One way you might want to
 use it is to force the repository to cache a value. This can be done
 using the `prime` method as seen below.

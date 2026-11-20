@@ -4,7 +4,22 @@ The following are lists of the notable changes included with each release.
 This is intended to help keep people informed about notable changes between
 versions, as well as provide a rough history.
 
-#### Next Release
+#### v2.4.0
+
+* Added: Ruby 3 keyword argument support. `Repository#get`, `#prime`,
+  `#get_from_cache`, `#delete`, `#generate_key`, the `Fetcher#fetch`
+  default, and `BackgroundRefreshRepository#refresh`,
+  `#background_refresh`, and `#stale?` now accept and forward keyword
+  arguments correctly on Ruby 3. Callers that write `repo.get(ids: [1])`
+  reach `fetch` with keywords instead of a positional Hash.
+* Changed: Minimum Ruby version is now `>= 3.0`. Ruby 2.x is no longer
+  supported.
+* Changed: Cache key generation folds keyword arguments into a trailing
+  Hash so keys match the pre-Ruby-3 layout and survive a rolling deploy.
+* Added: GitHub Actions CI matrix against Ruby 3.0, 3.1, 3.2, and 3.3.
+* Removed: `codeclimate-test-reporter` development dependency (deprecated).
+
+#### v2.3.1
 
 * Changed logging interface from class based to instance based
 * Added logging support to BackgroundRefreshRepository and Repository

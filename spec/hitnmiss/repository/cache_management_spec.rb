@@ -54,6 +54,24 @@ RSpec.describe Hitnmiss::Repository::CacheManagement do
 
       repository.delete('aoeuaoeuao')
     end
+
+    context 'when called with keyword arguments' do
+      it 'forwards the kwargs to generate_key' do
+        repo_klass = Class.new do
+          include Hitnmiss::Repository::CacheManagement
+          driver :my_driver
+        end
+
+        driver = double('cache driver', delete: nil)
+        Hitnmiss.register_driver(:my_driver, driver)
+
+        repository = repo_klass.new
+
+        expect(repository).to receive(:generate_key).with(ids: [1])
+
+        repository.delete(ids: [1])
+      end
+    end
   end
 
   describe '#all' do
